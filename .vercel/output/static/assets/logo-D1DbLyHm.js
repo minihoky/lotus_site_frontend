@@ -1,0 +1,1 @@
+var e=`/assets/logo-GQ_xk5h1.png`;export{e as t};
