@@ -224,9 +224,24 @@ export function amenitiesToFeatures(
   });
 }
 
+function parkingFeatureForStorage(parking: number): PropertyFeature {
+  return {
+    label: parking === 1 ? "1 vaga" : `${parking} vagas`,
+    icon: "parking",
+    amenityId: "parking_space",
+  };
+}
+
+function hasParkingFeature(features: PropertyFeature[]): boolean {
+  return features.some(
+    (feature) => feature.amenityId === "parking_space" || feature.icon === "parking",
+  );
+}
+
 export function mergeFeaturesForStorage(
   catalogFeatures: PropertyFeature[],
   customFeatures: PropertyFeature[],
+  parking?: number,
 ): PropertyFeature[] {
   const custom = customFeatures
     .map((feature) => ({
@@ -235,7 +250,12 @@ export function mergeFeaturesForStorage(
     }))
     .filter((feature) => feature.label.length > 0 && FEATURE_ICONS[feature.icon]);
 
-  return dedupeFeatures([...catalogFeatures, ...custom]);
+  const catalog = [...catalogFeatures];
+  if (parking && parking > 0 && !hasParkingFeature([...catalog, ...custom])) {
+    catalog.unshift(parkingFeatureForStorage(parking));
+  }
+
+  return dedupeFeatures([...catalog, ...custom]);
 }
 
 export function resolveFeaturesForDisplay(features: PropertyFeature[]): PropertyFeature[] {
