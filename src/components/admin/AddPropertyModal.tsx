@@ -16,20 +16,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PropertyAmenitiesField } from "@/components/PropertyAmenitiesField";
-import {
-  createProperty,
-  fetchCondominiums,
-  updateProperty,
-  type Property,
-  type PropertyFeature,
-} from "@/lib/api";
+import { createProperty, fetchCondominiums, updateProperty, type Property } from "@/lib/api";
 import {
   amenitiesToFeatures,
   extractCustomFeatures,
   featuresToAmenityIds,
   mergeFeaturesForStorage,
-  type AmenityId,
 } from "@/lib/property-features";
 import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
 import { cn } from "@/lib/utils";
@@ -330,9 +322,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [condominiumSuggestions, setCondominiumSuggestions] = useState<string[]>([]);
-  const [selectedAmenities, setSelectedAmenities] = useState<AmenityId[]>([]);
-  const [customFeatures, setCustomFeatures] = useState<PropertyFeature[]>([]);
-  const [parkingSpaces, setParkingSpaces] = useState<number | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
@@ -343,9 +332,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(null);
     setGalleryItems([]);
-    setSelectedAmenities([]);
-    setCustomFeatures([]);
-    setParkingSpaces(undefined);
     formRef.current?.reset();
   }
 
@@ -353,9 +339,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(nextProperty.image);
     setGalleryItems(nextProperty.gallery.map((url) => ({ key: url, preview: url })));
-    setSelectedAmenities(featuresToAmenityIds(nextProperty.features));
-    setCustomFeatures(extractCustomFeatures(nextProperty.features));
-    setParkingSpaces(nextProperty.parking);
   }
 
   useEffect(() => {
@@ -440,11 +423,14 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const baths = Number(formData.get("baths"));
     const parking = Number(formData.get("parking"));
     const area = Number(formData.get("area"));
-    const features = mergeFeaturesForStorage(
-      amenitiesToFeatures(selectedAmenities, parking),
-      customFeatures,
-      parking,
-    );
+    const features =
+      isEdit && property
+        ? mergeFeaturesForStorage(
+            amenitiesToFeatures(featuresToAmenityIds(property.features), parking),
+            extractCustomFeatures(property.features),
+            parking,
+          )
+        : mergeFeaturesForStorage([], [], parking);
 
     const existingGalleryUrls = galleryItems.filter((item) => !item.file).map((item) => item.preview);
     const newGalleryFiles = galleryItems.filter((item) => item.file).map((item) => item.file!);
@@ -601,10 +587,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                   className="h-10 rounded-lg border-border/70"
                   required
                   disabled={submitting}
-                  onChange={(event) => {
-                    const next = Number(event.target.value);
-                    setParkingSpaces(Number.isFinite(next) && next >= 0 ? next : undefined);
-                  }}
                 />
               </div>
               <div className="space-y-2">
@@ -675,20 +657,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           <section className="space-y-4">
             <SectionHeading number={7} title="Finalidade e localização" />
             <PropertyListingFields property={property} submitting={submitting} />
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-foreground">Diferenciais do imóvel</Label>
-              <p className="text-xs text-muted-foreground">
-                Selecione os principais diferenciais e adicione características exclusivas deste imóvel.
-              </p>
-              <PropertyAmenitiesField
-                selected={selectedAmenities}
-                onChange={setSelectedAmenities}
-                customFeatures={customFeatures}
-                onCustomFeaturesChange={setCustomFeatures}
-                parking={parkingSpaces}
-                submitting={submitting}
-              />
-            </div>
           </section>
 
           <section className="space-y-4">
