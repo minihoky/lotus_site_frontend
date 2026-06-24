@@ -7,16 +7,22 @@ type PropertyFeaturesGridProps = {
   features: PropertyFeature[];
   parking?: number;
   className?: string;
+  emptyMessage?: string;
+  usePageLabels?: boolean;
 };
 
-export function PropertyFeaturesGrid({ features, parking, className }: PropertyFeaturesGridProps) {
-  const items = catalogFeaturesForDisplay(features ?? [], parking);
+export function PropertyFeaturesGrid({
+  features,
+  parking,
+  className,
+  emptyMessage = "No key features listed for this property.",
+  usePageLabels = true,
+}: PropertyFeaturesGridProps) {
+  const items = catalogFeaturesForDisplay(features ?? [], parking, { usePageLabels });
 
   if (items.length === 0) {
     return (
-      <p className="mt-4 text-sm text-muted-foreground">
-        Nenhum diferencial cadastrado para este imóvel.
-      </p>
+      <p className="mt-4 text-sm text-muted-foreground">{emptyMessage}</p>
     );
   }
 

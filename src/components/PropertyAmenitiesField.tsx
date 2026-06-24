@@ -60,6 +60,8 @@ export function PropertyAmenitiesField({
             features={previewFeatures}
             parking={parking}
             className="mt-0"
+            usePageLabels={false}
+            emptyMessage="Nenhum diferencial selecionado."
           />
         </div>
       ) : (

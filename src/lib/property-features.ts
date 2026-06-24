@@ -22,16 +22,17 @@ export type PropertyFeatureIcon = PropertyFeature["icon"];
 export const AMENITY_CATALOG: {
   id: AmenityId;
   label: string;
+  pageLabel: string;
   icon: PropertyFeatureIcon;
 }[] = [
-  { id: "private_pool", label: "Piscina privativa", icon: "pool" },
-  { id: "terrace", label: "Terraço", icon: "balcony" },
-  { id: "security_24h", label: "Portaria 24h", icon: "security" },
-  { id: "air_conditioning", label: "Ar condicionado", icon: "ac" },
-  { id: "private_beach", label: "Praia privativa", icon: "beach" },
-  { id: "marina", label: "Marina", icon: "marina" },
-  { id: "wifi", label: "Wi-Fi", icon: "wifi" },
-  { id: "parking_space", label: "Vaga de estacionamento", icon: "parking" },
+  { id: "private_pool", label: "Piscina privativa", pageLabel: "Private swimming pool", icon: "pool" },
+  { id: "terrace", label: "Terraço", pageLabel: "Terrace", icon: "balcony" },
+  { id: "security_24h", label: "Portaria 24h", pageLabel: "24-hour security room", icon: "security" },
+  { id: "air_conditioning", label: "Ar condicionado", pageLabel: "Heating and cooling", icon: "ac" },
+  { id: "private_beach", label: "Praia privativa", pageLabel: "Private beach", icon: "beach" },
+  { id: "marina", label: "Marina", pageLabel: "Marina", icon: "marina" },
+  { id: "wifi", label: "Wi-Fi", pageLabel: "Wi-Fi", icon: "wifi" },
+  { id: "parking_space", label: "Vaga de estacionamento", pageLabel: "Parking", icon: "parking" },
 ];
 
 export const FEATURE_ICONS: Record<PropertyFeatureIcon, LucideIcon> = {
@@ -79,10 +80,36 @@ export function toggleAmenitySelection(selected: AmenityId[], id: AmenityId): Am
 export function catalogFeaturesForDisplay(
   features: PropertyFeature[],
   parking?: number,
+  options?: { usePageLabels?: boolean },
 ): PropertyFeature[] {
   const ids = featuresToAmenityIds(features);
   if (ids.length === 0) return [];
-  return amenitiesToFeatures(ids, parking);
+
+  const usePageLabels = options?.usePageLabels ?? true;
+
+  return sortAmenityIds(ids).map((id) => {
+    const amenity = AMENITY_BY_ID.get(id)!;
+
+    if (id === "parking_space" && parking && parking > 0) {
+      return {
+        label: usePageLabels
+          ? parking === 1
+            ? "1 parking space"
+            : `${parking} parking spaces`
+          : parking === 1
+            ? "1 vaga"
+            : `${parking} vagas`,
+        icon: "parking",
+        amenityId: id,
+      };
+    }
+
+    return {
+      label: usePageLabels ? amenity.pageLabel : amenity.label,
+      icon: amenity.icon,
+      amenityId: id,
+    };
+  });
 }
 
 export function amenitiesToFeatures(
@@ -114,7 +141,9 @@ function amenityIdForFeature(feature: PropertyFeature): AmenityId | undefined {
   }
 
   const byLabel = AMENITY_CATALOG.find(
-    (amenity) => amenity.label.toLowerCase() === feature.label.toLowerCase(),
+    (amenity) =>
+      amenity.label.toLowerCase() === feature.label.toLowerCase() ||
+      amenity.pageLabel.toLowerCase() === feature.label.toLowerCase(),
   );
   if (byLabel) return byLabel.id;
 

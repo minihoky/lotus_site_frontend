@@ -289,7 +289,7 @@ export function PropertyDetail({ property, similar }: { property: Property; simi
             </section>
 
             <section>
-              <h2 className="font-display text-2xl text-foreground">Diferenciais do imóvel</h2>
+              <h2 className="font-display text-2xl text-foreground">Key Real Estate Features</h2>
               <PropertyFeaturesGrid features={property.features} parking={property.parking} />
             </section>
           </div>
