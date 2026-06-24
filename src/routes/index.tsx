@@ -29,44 +29,40 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-function getPropertyType(title: string): string {
-  const firstWord = title.trim().split(/\s+/)[0] ?? "";
-  return firstWord;
-}
-
-function buildFilterOptions(properties: Property[]) {
-  const types = new Set<string>();
-  const locations = new Set<string>();
-  const areas = new Set<number>();
-  const prices = new Set<string>();
-
+function buildCondominiums(properties: Property[]): string[] {
+  const names = new Set<string>();
   for (const property of properties) {
-    types.add(getPropertyType(property.title));
-    locations.add(property.location);
-    areas.add(property.area);
-    prices.add(property.price);
+    if (property.condominium) {
+      names.add(property.condominium);
+    }
   }
-
-  return {
-    types: Array.from(types).sort((a, b) => a.localeCompare(b, "pt-BR")),
-    locations: Array.from(locations).sort((a, b) => a.localeCompare(b, "pt-BR")),
-    areas: Array.from(areas).sort((a, b) => a - b),
-    prices: Array.from(prices),
-  };
+  return Array.from(names).sort((a, b) => a.localeCompare(b, "pt-BR"));
 }
 
 function applyFilters(properties: Property[], filters: HeroSearchFilters): Property[] {
   return properties.filter((property) => {
-    if (filters.type && getPropertyType(property.title) !== filters.type) {
+    if (filters.purpose && property.purpose !== filters.purpose) {
       return false;
     }
-    if (filters.location && property.location !== filters.location) {
+    if (filters.propertyType && property.propertyType !== filters.propertyType) {
       return false;
     }
-    if (filters.area !== undefined && property.area !== filters.area) {
+    if (filters.condominium && property.condominium !== filters.condominium) {
       return false;
     }
-    if (filters.price && property.price !== filters.price) {
+    if (filters.locationOrCode) {
+      const query = filters.locationOrCode.toLowerCase();
+      const matchesLocation = property.location.toLowerCase().includes(query);
+      const matchesCode = property.code?.toLowerCase().includes(query) ?? false;
+      const matchesSlug = property.slug.toLowerCase().includes(query);
+      if (!matchesLocation && !matchesCode && !matchesSlug) {
+        return false;
+      }
+    }
+    if (filters.minPrice !== undefined && property.priceValue < filters.minPrice) {
+      return false;
+    }
+    if (filters.maxPrice !== undefined && property.priceValue > filters.maxPrice) {
       return false;
     }
     return true;
@@ -83,7 +79,7 @@ function Index() {
     setFilteredProperties(applyFilters(properties, filters));
   }, [properties, filters]);
 
-  const filterOptions = useMemo(() => buildFilterOptions(properties), [properties]);
+  const condominiums = useMemo(() => buildCondominiums(properties), [properties]);
 
   function handleSearch(newFilters: HeroSearchFilters) {
     setFilters(newFilters);
@@ -101,13 +97,7 @@ function Index() {
     <div className="min-h-screen bg-background font-sans text-foreground antialiased">
       <Header />
       <main>
-        <Hero
-          propertyTypes={filterOptions.types}
-          locations={filterOptions.locations}
-          areas={filterOptions.areas}
-          prices={filterOptions.prices}
-          onSearch={handleSearch}
-        />
+        <Hero condominiums={condominiums} onSearch={handleSearch} />
         <FeaturedProperties
           properties={filteredProperties}
           emptySearch={hasSearched && filteredProperties.length === 0}

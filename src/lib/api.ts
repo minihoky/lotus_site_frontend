@@ -21,6 +21,10 @@ export type Property = {
   location: string;
   address: string;
   badge?: PropertyBadge;
+  purpose: "comprar" | "alugar";
+  propertyType: string;
+  condominium?: string;
+  code?: string;
   image: string;
   gallery: string[];
   beds: number;
@@ -44,6 +48,10 @@ export type CreatePropertyFormInput = {
   location: string;
   address?: string;
   price: string;
+  purpose?: "comprar" | "alugar";
+  propertyType?: string;
+  condominium?: string;
+  code?: string;
   badge?: PropertyBadge;
   coverImage: File;
   gallery: File[];
@@ -147,6 +155,8 @@ function toRelativeMediaUrl(url: string): string {
 function normalizeProperty(property: Property): Property {
   return {
     ...property,
+    purpose: property.purpose ?? "comprar",
+    propertyType: property.propertyType ?? "Apartamento",
     image: resolveMediaUrl(property.image),
     gallery: property.gallery.map(resolveMediaUrl),
   };
@@ -281,6 +291,10 @@ export type UpdatePropertyFormInput = {
   location: string;
   address?: string;
   price: string;
+  purpose?: "comprar" | "alugar";
+  propertyType?: string;
+  condominium?: string;
+  code?: string;
   badge?: PropertyBadge;
   coverImage?: File;
   existingCoverUrl?: string;
@@ -305,6 +319,10 @@ async function submitPropertyForm(
   formData.append("location", input.location);
   if (input.address) formData.append("address", input.address);
   formData.append("price", input.price);
+  if (input.purpose) formData.append("purpose", input.purpose);
+  if (input.propertyType) formData.append("propertyType", input.propertyType);
+  if (input.condominium) formData.append("condominium", input.condominium);
+  if (input.code) formData.append("code", input.code);
   if (input.badge) formData.append("badge", input.badge);
 
   if ("existingCoverUrl" in input && input.existingCoverUrl) {

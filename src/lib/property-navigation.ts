@@ -11,16 +11,13 @@ export type PropertyLinkState = {
 export function isPropertyDetailReady(property: Property): boolean {
   return Boolean(
     property.slug &&
-      property.title &&
-      property.description.length > 0 &&
-      (property.gallery.length > 0 || property.image),
+    property.title &&
+    property.description.length > 0 &&
+    (property.gallery.length > 0 || property.image),
   );
 }
 
-export function getPropertyFromLinkState(
-  state: unknown,
-  slug: string,
-): Property | undefined {
+export function getPropertyFromLinkState(state: unknown, slug: string): Property | undefined {
   if (!state || typeof state !== "object") return undefined;
 
   const property = (state as PropertyLinkState).property;
@@ -59,7 +56,5 @@ export function resolveCachedProperty(
   location: ParsedLocation,
   matches: Array<MakeRouteMatchUnion>,
 ): Property | undefined {
-  return (
-    getPropertyFromLinkState(location.state, slug) ?? findPropertyInMatches(matches, slug)
-  );
+  return getPropertyFromLinkState(location.state, slug) ?? findPropertyInMatches(matches, slug);
 }

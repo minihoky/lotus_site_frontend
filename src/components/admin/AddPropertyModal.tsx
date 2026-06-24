@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createProperty, updateProperty, type Property } from "@/lib/api";
+import { PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
 import { cn } from "@/lib/utils";
 
 interface AddPropertyModalProps {
@@ -291,6 +292,10 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const description = String(formData.get("description") ?? "").trim();
     const price = String(formData.get("price") ?? "").trim();
     const address = String(formData.get("address") ?? "").trim();
+    const purpose = String(formData.get("purpose") ?? "comprar").trim() as "comprar" | "alugar";
+    const propertyType = String(formData.get("propertyType") ?? "Apartamento").trim();
+    const condominium = String(formData.get("condominium") ?? "").trim();
+    const code = String(formData.get("code") ?? "").trim();
     const beds = Number(formData.get("beds"));
     const baths = Number(formData.get("baths"));
     const parking = Number(formData.get("parking"));
@@ -315,6 +320,10 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           location,
           address: address || undefined,
           price,
+          purpose,
+          propertyType,
+          condominium: condominium || undefined,
+          code: code || undefined,
           badge: property.badge,
           coverImage: coverFile ?? undefined,
           existingCoverUrl,
@@ -333,6 +342,10 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           location,
           address: address || undefined,
           price,
+          purpose,
+          propertyType,
+          condominium: condominium || undefined,
+          code: code || undefined,
           coverImage: coverFile!,
           gallery: newGalleryFiles,
         });
@@ -387,7 +400,73 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={2} title="Informações do imóvel" />
+            <SectionHeading number={2} title="Classificação" />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <RequiredLabel htmlFor="property-purpose">Finalidade</RequiredLabel>
+                <select
+                  id="property-purpose"
+                  name="purpose"
+                  defaultValue={property?.purpose ?? "comprar"}
+                  className="flex h-10 w-full rounded-lg border border-border/70 bg-background px-3 text-sm"
+                  required
+                  disabled={submitting}
+                >
+                  {PROPERTY_PURPOSES.map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <RequiredLabel htmlFor="property-type">Tipo de imóvel</RequiredLabel>
+                <select
+                  id="property-type"
+                  name="propertyType"
+                  defaultValue={property?.propertyType ?? "Apartamento"}
+                  className="flex h-10 w-full rounded-lg border border-border/70 bg-background px-3 text-sm"
+                  required
+                  disabled={submitting}
+                >
+                  {PROPERTY_TYPES.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="property-condominium" className="text-sm font-medium text-foreground">
+                  Condomínio
+                </Label>
+                <Input
+                  id="property-condominium"
+                  name="condominium"
+                  defaultValue={property?.condominium ?? ""}
+                  placeholder="Ex: Alphaville Residencial One"
+                  className="h-10 rounded-lg border-border/70"
+                  disabled={submitting}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="property-code" className="text-sm font-medium text-foreground">
+                  Código do imóvel
+                </Label>
+                <Input
+                  id="property-code"
+                  name="code"
+                  defaultValue={property?.code ?? ""}
+                  placeholder="Ex: LOT-021"
+                  className="h-10 rounded-lg border-border/70"
+                  disabled={submitting}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="space-y-4">
+            <SectionHeading number={3} title="Informações do imóvel" />
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <RequiredLabel htmlFor="property-beds">Número de Quartos</RequiredLabel>
@@ -454,7 +533,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={3} title="Descrição do imóvel" />
+            <SectionHeading number={4} title="Descrição do imóvel" />
             <div className="space-y-2">
               <RequiredLabel htmlFor="property-description">Descrição do imóvel</RequiredLabel>
               <Textarea
@@ -470,7 +549,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={4} title="Imagem de capa" />
+            <SectionHeading number={5} title="Imagem de capa" />
             <ImageUploadZone
               id="property-cover"
               label="Imagem de capa"
@@ -486,7 +565,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={5} title="Galeria de imagens" />
+            <SectionHeading number={6} title="Galeria de imagens" />
             <GalleryUploadZone
               id="property-gallery"
               label="Imagens do imóvel"
@@ -497,7 +576,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={6} title="Localização" />
+            <SectionHeading number={7} title="Localização" />
             <div className="space-y-4">
               <div className="space-y-2">
                 <RequiredLabel htmlFor="property-location">Localização</RequiredLabel>
@@ -534,7 +613,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={7} title="Preço" />
+            <SectionHeading number={8} title="Preço" />
             <div className="space-y-2">
               <RequiredLabel htmlFor="property-price">Preço do imóvel</RequiredLabel>
               <div className="flex">

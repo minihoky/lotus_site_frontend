@@ -208,7 +208,10 @@ function ContactSidebar({ property }: { property: Property }) {
       <div className="rounded-lg border border-border/70 bg-card p-6 shadow-sm">
         <h3 className="font-display text-lg text-foreground">Fale com um consultor</h3>
         <div className="mt-4 space-y-3 text-sm text-muted-foreground">
-          <a href="tel:+551140028922" className="flex items-center gap-3 transition-colors hover:text-gold">
+          <a
+            href="tel:+551140028922"
+            className="flex items-center gap-3 transition-colors hover:text-gold"
+          >
             <Phone className="h-4 w-4 shrink-0 text-gold" />
             (11) 4002-8922
           </a>
@@ -236,14 +239,7 @@ function ContactSidebar({ property }: { property: Property }) {
   );
 }
 
-export function PropertyDetail({
-  property,
-  similar,
-}: {
-  property: Property;
-  similar: ReactNode;
-}) {
-
+export function PropertyDetail({ property, similar }: { property: Property; similar: ReactNode }) {
   const stats = [
     { icon: BedDouble, label: `${property.beds} Quartos` },
     { icon: Bath, label: `${property.baths} Banheiros` },
@@ -281,7 +277,9 @@ export function PropertyDetail({
             <PropertyGallery property={property} />
 
             <div>
-              <h1 className="font-display text-3xl text-foreground md:text-4xl">{property.title}</h1>
+              <h1 className="font-display text-3xl text-foreground md:text-4xl">
+                {property.title}
+              </h1>
               <p className="mt-2 flex items-center gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4 text-gold" />
                 {property.location}
@@ -290,7 +288,10 @@ export function PropertyDetail({
 
               <div className="mt-6 flex flex-wrap gap-6 border-y border-border/70 py-5">
                 {stats.map(({ icon: Icon, label }) => (
-                  <span key={label} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span
+                    key={label}
+                    className="flex items-center gap-2 text-sm text-muted-foreground"
+                  >
                     <Icon className="h-5 w-5 text-gold" strokeWidth={1.5} />
                     {label}
                   </span>

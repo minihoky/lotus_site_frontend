@@ -1,85 +1,74 @@
 import { useState } from "react";
 import imageHero from "@/assets/hero-living.png";
-import { ArrowRight, Building2, ChevronDown, DollarSign, Home, MapPin, Search } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
+import {
+  PROPERTY_PURPOSES,
+  PROPERTY_TYPES,
+  handlePriceInputChange,
+  parseBrazilianPrice,
+  type PropertyPurpose,
+} from "@/lib/property-search";
 
 export type HeroSearchFilters = {
-  type?: string;
-  location?: string;
-  area?: number;
-  price?: string;
+  purpose?: PropertyPurpose;
+  propertyType?: string;
+  condominium?: string;
+  locationOrCode?: string;
+  minPrice?: number;
+  maxPrice?: number;
 };
 
 type HeroProps = {
-  propertyTypes: string[];
-  locations: string[];
-  areas: number[];
-  prices: string[];
+  condominiums: string[];
   onSearch: (filters: HeroSearchFilters) => void;
 };
 
-type FilterKey = "type" | "location" | "area" | "price";
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label className="mb-1.5 block text-[10px] font-semibold tracking-[0.18em] text-gold">
+      {children}
+    </label>
+  );
+}
 
-const FILTERS: { key: FilterKey; icon: React.ComponentType<{ className?: string; strokeWidth?: number }>; label: string }[] =
-  [
-    { key: "type", icon: Home, label: "Comprar" },
-    { key: "location", icon: MapPin, label: "Tipo de imóvel" },
-    { key: "area", icon: Building2, label: "Cidade ou bairro" },
-    { key: "price", icon: DollarSign, label: "Faixa de preço" },
-  ];
+const selectClassName =
+  "h-11 w-full appearance-none rounded-md border border-border/80 bg-background px-3 text-sm text-foreground outline-none transition-colors focus:border-gold/60";
 
-export function Hero({ propertyTypes, locations, areas, prices, onSearch }: HeroProps) {
-  const [openDropdown, setOpenDropdown] = useState<FilterKey | null>(null);
-  const [selectedType, setSelectedType] = useState<string | undefined>();
-  const [selectedLocation, setSelectedLocation] = useState<string | undefined>();
-  const [selectedArea, setSelectedArea] = useState<number | undefined>();
-  const [selectedPrice, setSelectedPrice] = useState<string | undefined>();
+const inputClassName =
+  "h-11 w-full rounded-md border border-border/80 bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-gold/60";
 
-  function toggleDropdown(key: FilterKey) {
-    setOpenDropdown((prev) => (prev === key ? null : key));
-  }
+export function Hero({ condominiums, onSearch }: HeroProps) {
+  const [purpose, setPurpose] = useState<PropertyPurpose>("comprar");
+  const [propertyType, setPropertyType] = useState("");
+  const [condominium, setCondominium] = useState("");
+  const [locationOrCode, setLocationOrCode] = useState("");
+  const [minPriceInput, setMinPriceInput] = useState("");
+  const [maxPriceInput, setMaxPriceInput] = useState("");
+  const [priceError, setPriceError] = useState<string | null>(null);
 
   function handleSearchClick() {
+    const minPrice = parseBrazilianPrice(minPriceInput);
+    const maxPrice = parseBrazilianPrice(maxPriceInput);
+
+    if (minPrice <= 0 || maxPrice <= 0) {
+      setPriceError("Informe o valor mínimo e o valor máximo.");
+      return;
+    }
+
+    if (minPrice > maxPrice) {
+      setPriceError("O valor mínimo não pode ser maior que o valor máximo.");
+      return;
+    }
+
+    setPriceError(null);
     onSearch({
-      type: selectedType,
-      location: selectedLocation,
-      area: selectedArea,
-      price: selectedPrice,
+      purpose,
+      propertyType: propertyType || undefined,
+      condominium: condominium || undefined,
+      locationOrCode: locationOrCode.trim() || undefined,
+      minPrice,
+      maxPrice,
     });
-  }
-
-  function getButtonLabel(key: FilterKey, defaultLabel: string): string {
-    if (key === "type" && selectedType) return selectedType;
-    if (key === "location" && selectedLocation) return selectedLocation;
-    if (key === "area" && selectedArea !== undefined) return `${selectedArea}m²`;
-    if (key === "price" && selectedPrice) return selectedPrice;
-    return defaultLabel;
-  }
-
-  function renderOptions(key: FilterKey) {
-    if (key === "type") {
-      return propertyTypes;
-    }
-    if (key === "location") {
-      return locations;
-    }
-    if (key === "area") {
-      return areas.map((area) => `${area}`);
-    }
-    return prices;
-  }
-
-  function handleOptionClick(key: FilterKey, value: string) {
-    if (key === "type") {
-      setSelectedType(value);
-    } else if (key === "location") {
-      setSelectedLocation(value);
-    } else if (key === "area") {
-      const numeric = Number(value);
-      setSelectedArea(Number.isFinite(numeric) ? numeric : undefined);
-    } else if (key === "price") {
-      setSelectedPrice(value);
-    }
-    setOpenDropdown(null);
   }
 
   return (
@@ -119,52 +108,131 @@ export function Hero({ propertyTypes, locations, areas, prices, onSearch }: Hero
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 pb-14 md:pb-16">
-        <div className="-mt-10 rounded-xl border border-border/80 bg-card p-2.5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:-mt-12 md:p-3">
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-[repeat(4,1fr)_auto]">
-            {FILTERS.map(({ key, icon: Icon, label }) => (
-              <div key={key} className="relative">
-                <button
-                  type="button"
-                  onClick={() => toggleDropdown(key)}
-                  className="flex w-full items-center justify-between gap-3 rounded-lg border border-border/80 bg-background px-4 py-3 text-left text-sm text-muted-foreground transition-colors hover:border-gold/50"
-                  aria-haspopup="listbox"
-                  aria-expanded={openDropdown === key}
-                >
-                  <span className="flex items-center gap-2.5">
-                    <Icon className="h-4 w-4 text-gold" strokeWidth={1.5} />
-                    {getButtonLabel(key, label)}
-                  </span>
-                  <ChevronDown className="h-3.5 w-3.5 opacity-40" />
-                </button>
-                {openDropdown === key ? (
-                  <div className="absolute left-0 right-0 top-full z-20 mt-1 max-h-64 overflow-y-auto rounded-lg border border-border/80 bg-background py-1 text-sm shadow-lg">
-                    {renderOptions(key).map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className="flex w-full items-center px-4 py-2 text-left text-foreground hover:bg-muted"
-                        onClick={() => handleOptionClick(key, option)}
-                      >
-                        {key === "area" ? `${option}m²` : option}
-                      </button>
-                    ))}
-                    {renderOptions(key).length === 0 ? (
-                      <div className="px-4 py-2 text-xs text-muted-foreground">
-                        Nenhuma opção disponível no momento.
-                      </div>
-                    ) : null}
-                  </div>
-                ) : null}
+        <div className="-mt-10 rounded-xl border border-border/80 bg-card p-5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:-mt-12 md:p-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <FieldLabel>FINALIDADE</FieldLabel>
+              <select
+                value={purpose}
+                onChange={(e) => setPurpose(e.target.value as PropertyPurpose)}
+                className={selectClassName}
+                aria-label="Finalidade"
+              >
+                {PROPERTY_PURPOSES.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <FieldLabel>TIPO DE IMÓVEL</FieldLabel>
+              <select
+                value={propertyType}
+                onChange={(e) => setPropertyType(e.target.value)}
+                className={selectClassName}
+                aria-label="Tipo de imóvel"
+              >
+                <option value="">Todos</option>
+                {PROPERTY_TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <FieldLabel>CONDOMÍNIO</FieldLabel>
+              <select
+                value={condominium}
+                onChange={(e) => setCondominium(e.target.value)}
+                className={selectClassName}
+                aria-label="Condomínio"
+              >
+                <option value="">Todos</option>
+                {condominiums.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <FieldLabel>LOCALIZAÇÃO OU CÓDIGO</FieldLabel>
+              <input
+                type="text"
+                value={locationOrCode}
+                onChange={(e) => setLocationOrCode(e.target.value)}
+                placeholder="Bairro, Cidade ou código"
+                className={inputClassName}
+                aria-label="Localização ou código"
+              />
+            </div>
+          </div>
+
+          <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <FieldLabel>VALOR MÍNIMO</FieldLabel>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                  R$
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={minPriceInput}
+                  onChange={(e) => {
+                    setMinPriceInput(handlePriceInputChange(e.target.value));
+                    setPriceError(null);
+                  }}
+                  placeholder="0,00"
+                  className={`${inputClassName} pl-9`}
+                  aria-label="Valor mínimo"
+                  aria-invalid={priceError ? true : undefined}
+                />
               </div>
-            ))}
-            <button
-              type="button"
-              onClick={handleSearchClick}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-gold px-7 py-3 text-[11px] font-semibold tracking-[0.22em] text-primary-foreground transition-colors hover:bg-gold-dark md:px-8"
-            >
-              <Search className="h-4 w-4" />
-              BUSCAR
-            </button>
+            </div>
+
+            <div>
+              <FieldLabel>VALOR MÁXIMO</FieldLabel>
+              <div className="relative">
+                <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                  R$
+                </span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={maxPriceInput}
+                  onChange={(e) => {
+                    setMaxPriceInput(handlePriceInputChange(e.target.value));
+                    setPriceError(null);
+                  }}
+                  placeholder="0,00"
+                  className={`${inputClassName} pl-9`}
+                  aria-label="Valor máximo"
+                  aria-invalid={priceError ? true : undefined}
+                />
+              </div>
+            </div>
+
+            <div className="sm:col-span-2">
+              {priceError ? (
+                <p className="mb-2 text-xs text-destructive" role="alert">
+                  {priceError}
+                </p>
+              ) : null}
+              <button
+                type="button"
+                onClick={handleSearchClick}
+                className="flex h-11 w-full items-center justify-center gap-2.5 rounded-md bg-gold text-[11px] font-semibold tracking-[0.22em] text-primary-foreground transition-colors hover:bg-gold-dark lg:mt-[22px]"
+              >
+                <Search className="h-4 w-4" />
+                BUSCAR IMÓVEIS
+              </button>
+            </div>
           </div>
         </div>
       </div>
