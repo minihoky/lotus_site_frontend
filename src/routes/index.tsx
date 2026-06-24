@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "@/components/sections/Header";
 import { Hero } from "@/components/sections/Hero";
@@ -6,46 +6,52 @@ import { FeaturedProperties } from "@/components/sections/FeaturedProperties";
 import { Differentials } from "@/components/sections/Differentials";
 import { CTABanner } from "@/components/sections/CTABanner";
 import { Footer } from "@/components/sections/Footer";
-import { fetchProperties, type Property } from "@/lib/properties";
-import { applyPropertyFilters, type HeroSearchFilters } from "@/lib/property-search";
+import { fetchCondominiums, fetchProperties, type Property } from "@/lib/properties";
+import {
+  applyPropertyFilters,
+  condominiumsFromProperties,
+  mergeCondominiumLists,
+  type HeroSearchFilters,
+} from "@/lib/property-search";
 
 export const Route = createFileRoute("/")({
-  loader: () => fetchProperties({ sort: "recent" }),
+  loader: async () => {
+    const [properties, apiCondominiums] = await Promise.all([
+      fetchProperties({ sort: "recent" }),
+      fetchCondominiums().catch(() => [] as string[]),
+    ]);
+
+    const condominiums = mergeCondominiumLists(
+      apiCondominiums,
+      condominiumsFromProperties(properties),
+    );
+
+    return { properties, condominiums };
+  },
   staleTime: 60_000,
   head: () => ({
     meta: [
-      { title: "Lótus Imóveis — Realizando sonhos, construindo histórias" },
+      { title: "Lótus Imóveis — Investir com visão, transformando escolhas em valor" },
       {
         name: "description",
         content:
-          "Imobiliária de alto padrão em São Paulo. Encontre casas, apartamentos e lançamentos com confiança, qualidade e excelência.",
+          "Encontre oportunidades imobiliárias selecionadas com estratégia, segurança e excelência.",
       },
       { property: "og:title", content: "Lótus Imóveis" },
       {
         property: "og:description",
-        content: "Encontre o imóvel ideal com quem entende de confiança, qualidade e excelência.",
+        content:
+          "Encontre oportunidades imobiliárias selecionadas com estratégia, segurança e excelência.",
       },
     ],
   }),
   component: Index,
 });
 
-function buildCondominiums(properties: Property[]): string[] {
-  const names = new Set<string>();
-  for (const property of properties) {
-    if (property.condominium) {
-      names.add(property.condominium);
-    }
-  }
-  return Array.from(names).sort((a, b) => a.localeCompare(b, "pt-BR"));
-}
-
 function Index() {
-  const properties = Route.useLoaderData();
+  const { properties, condominiums } = Route.useLoaderData();
   const [filteredProperties, setFilteredProperties] = useState<Property[]>(properties);
   const [hasSearched, setHasSearched] = useState(false);
-
-  const condominiums = useMemo(() => buildCondominiums(properties), [properties]);
 
   function handleSearch(filters: HeroSearchFilters) {
     setHasSearched(true);

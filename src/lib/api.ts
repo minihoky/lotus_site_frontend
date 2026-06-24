@@ -219,6 +219,11 @@ export async function fetchRecentProperties(limit = 5): Promise<Property[]> {
   return res.data.map(normalizeProperty);
 }
 
+export async function fetchCondominiums(): Promise<string[]> {
+  const res = await apiFetch<ApiListResponse<string[]>>("/api/properties/condominiums");
+  return res.data;
+}
+
 export async function fetchPropertyBySlug(slug: string): Promise<Property | undefined> {
   try {
     const res = await apiFetch<ApiItemResponse<Property>>(`/api/properties/${slug}`);

@@ -80,20 +80,20 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
           height={1200}
           className="absolute inset-0 h-full w-full object-cover object-center"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-white/95 via-white/75 to-white/10" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-black/20" />
 
         <div className="relative mx-auto flex h-full max-w-7xl items-center px-6 py-14 md:py-16 lg:py-20">
           <div className="max-w-xl">
             <p className="mb-4 text-[11px] font-semibold tracking-[0.24em] text-gold">
               BEM-VINDO À LÓTUS IMÓVEIS
             </p>
-            <h1 className="font-display text-[2.75rem] leading-[1.08] text-foreground md:text-5xl lg:text-[3.5rem]">
-              Realizando sonhos,
+            <h1 className="font-display text-[2.75rem] leading-[1.08] text-white md:text-5xl lg:text-[3.5rem]">
+              Investir com <span className="text-gold">VISÃO</span>,
               <br />
-              construindo histórias.
+              transformando escolhas em <span className="text-gold">VALOR</span>.
             </h1>
-            <p className="mt-5 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-              Encontre o imóvel ideal com quem entende de confiança, qualidade e excelência.
+            <p className="mt-5 max-w-md text-[15px] leading-relaxed text-white/85">
+              Encontre oportunidades imobiliárias selecionadas com estratégia, segurança e excelência.
             </p>
             <a
               href="#imoveis"
@@ -153,6 +153,7 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
                 onChange={(e) => setCondominium(e.target.value)}
                 className={selectClassName}
                 aria-label="Condomínio"
+                disabled={condominiums.length === 0}
               >
                 <option value="">Todos</option>
                 {condominiums.map((name) => (
@@ -161,6 +162,11 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
                   </option>
                 ))}
               </select>
+              {condominiums.length === 0 ? (
+                <p className="mt-1 text-[10px] text-muted-foreground">
+                  Nenhum condomínio cadastrado nos imóveis.
+                </p>
+              ) : null}
             </div>
 
             <div>

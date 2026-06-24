@@ -16,6 +16,23 @@ export type HeroSearchFilters = {
   maxPrice?: number;
 };
 
+export function mergeCondominiumLists(...sources: Iterable<string>[]): string[] {
+  const names = new Set<string>();
+  for (const source of sources) {
+    for (const name of source) {
+      const trimmed = name.trim();
+      if (trimmed) names.add(trimmed);
+    }
+  }
+  return Array.from(names).sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+export function condominiumsFromProperties(properties: Property[]): string[] {
+  return mergeCondominiumLists(
+    properties.map((property) => property.condominium ?? "").filter(Boolean),
+  );
+}
+
 const PROPERTY_CODE_PATTERN = /^(?:[A-Z]{2,}[-_])?\d{1,6}$|^[A-Z]{2,}[-_][A-Z0-9][-A-Z0-9]*$/i;
 
 export function isPropertyCode(input: string): boolean {

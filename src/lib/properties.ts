@@ -14,6 +14,7 @@ export type {
 export {
   fetchProperties,
   fetchRecentProperties,
+  fetchCondominiums,
   fetchPropertyBySlug,
   fetchSimilarProperties,
   fetchInquiries,

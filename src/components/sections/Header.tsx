@@ -4,8 +4,6 @@ import { WhatsAppIcon } from "@/components/icons/WhatsAppIcon";
 const NAV = [
   { label: "INÍCIO", href: "#inicio", active: true },
   { label: "IMÓVEIS", href: "#imoveis" },
-  { label: "LANÇAMENTOS", href: "#lancamentos" },
-  { label: "SOBRE NÓS", href: "#sobre" },
   { label: "CONTATO", href: "#contato" },
 ];
 
