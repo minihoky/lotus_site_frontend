@@ -14,6 +14,8 @@ export function PropertyCard({ property }: { property: Property }) {
     <Link
       to="/imoveis/$slug"
       params={{ slug: property.slug }}
+      state={{ property }}
+      preload="intent"
       className="group block overflow-hidden rounded-lg border border-border/70 bg-card shadow-[0_2px_12px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)]"
     >
       <div className="relative overflow-hidden">

@@ -1,4 +1,4 @@
-import { useState, type ComponentType, type FormEvent } from "react";
+import { useState, type ComponentType, type FormEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
@@ -36,8 +36,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PropertyCard } from "@/components/PropertyCard";
-import { PropertyMap } from "@/components/PropertyMap";
+import { LazyPropertyMap } from "@/components/LazyPropertyMap";
 import type { Property, PropertyFeature } from "@/lib/properties";
 import { submitInquiry } from "@/lib/properties";
 import { toast } from "sonner";
@@ -89,6 +88,8 @@ function PropertyGallery({ property }: { property: Property }) {
         <img
           src={images[activeIndex]}
           alt={`${property.title} — foto ${activeIndex + 1}`}
+          fetchPriority="high"
+          decoding="async"
           className="aspect-[16/9] w-full object-cover md:aspect-[2/1]"
         />
         <button
@@ -224,7 +225,7 @@ function ContactSidebar({ property }: { property: Property }) {
       <div className="rounded-lg border border-border/70 bg-card p-6 shadow-sm">
         <h3 className="font-display text-lg text-foreground">Localização</h3>
         <div className="mt-4 overflow-hidden rounded-md">
-          <PropertyMap address={property.address} />
+          <LazyPropertyMap address={property.address} />
         </div>
         <p className="mt-3 flex items-start gap-2 text-sm text-muted-foreground">
           <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold" />
@@ -240,7 +241,7 @@ export function PropertyDetail({
   similar,
 }: {
   property: Property;
-  similar: Property[];
+  similar: ReactNode;
 }) {
 
   const stats = [
@@ -340,11 +341,7 @@ export function PropertyDetail({
               <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 lg:gap-7">
-            {similar.map((p) => (
-              <PropertyCard key={p.slug} property={p} />
-            ))}
-          </div>
+          {similar}
         </section>
       </div>
     </div>

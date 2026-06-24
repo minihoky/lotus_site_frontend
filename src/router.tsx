@@ -19,7 +19,9 @@ export const getRouter = () => {
     routeTree,
     context: { queryClient },
     scrollRestoration: true,
+    defaultPreload: "intent",
     defaultPreloadStaleTime: STALE_TIME_MS,
+    defaultPendingMs: 0,
   });
 
   return router;
