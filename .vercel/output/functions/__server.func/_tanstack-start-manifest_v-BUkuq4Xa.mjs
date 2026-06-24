@@ -1,4 +1,4 @@
-//#region node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-Bijm6Dwx.js
+//#region node_modules/.nitro/vite/services/ssr/assets/_tanstack-start-manifest_v-BUkuq4Xa.js
 var tsrStartManifest = () => ({ routes: {
 	__root__: {
 		filePath: "D:/lotus/frontend/src/routes/__root.tsx",
@@ -7,18 +7,18 @@ var tsrStartManifest = () => ({ routes: {
 			"/admin",
 			"/imoveis/$slug"
 		],
-		preloads: ["/assets/index-BDlPpN50.js", "/assets/link-DMnqu1x5.js"],
+		preloads: ["/assets/index-B8EvXsFq.js", "/assets/link-DMnqu1x5.js"],
 		scripts: [{ attrs: {
 			type: "module",
 			async: !0,
-			src: "/assets/index-BDlPpN50.js"
+			src: "/assets/index-B8EvXsFq.js"
 		} }]
 	},
 	"/": {
 		filePath: "D:/lotus/frontend/src/routes/index.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/routes-Co2voyg0.js",
+			"/assets/routes-B4WxG5UK.js",
 			"/assets/building-2-C76BDhLF.js",
 			"/assets/PropertyCard-CvLpgcsN.js",
 			"/assets/maximize-p2iTYllr.js",
@@ -30,7 +30,7 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "D:/lotus/frontend/src/routes/admin/route.tsx",
 		children: ["/admin/"],
 		preloads: [
-			"/assets/route-BMrcHHjU.js",
+			"/assets/route-Dh1q4wWe.js",
 			"/assets/sidebar-C2A-tnHC.js",
 			"/assets/input-LqhRF0Fo.js",
 			"/assets/building-2-C76BDhLF.js",
@@ -43,7 +43,7 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "D:/lotus/frontend/src/routes/imoveis.$slug.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/imoveis._slug-BpCLm1fY.js",
+			"/assets/imoveis._slug-BKMm_3r3.js",
 			"/assets/input-LqhRF0Fo.js",
 			"/assets/textarea-CdV7BVng.js",
 			"/assets/building-2-C76BDhLF.js",
@@ -56,7 +56,7 @@ var tsrStartManifest = () => ({ routes: {
 		filePath: "D:/lotus/frontend/src/routes/admin/index.tsx",
 		children: void 0,
 		preloads: [
-			"/assets/admin-BgdlPiJq.js",
+			"/assets/admin-Bvrfa07X.js",
 			"/assets/textarea-CdV7BVng.js",
 			"/assets/maximize-p2iTYllr.js",
 			"/assets/dollar-sign-CZmTD3lk.js"
