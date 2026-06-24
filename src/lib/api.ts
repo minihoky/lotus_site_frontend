@@ -1,5 +1,15 @@
 export type PropertyBadge = "DESTAQUE" | "LANÇAMENTO";
 
+export type PropertyAmenityId =
+  | "private_pool"
+  | "terrace"
+  | "security_24h"
+  | "air_conditioning"
+  | "private_beach"
+  | "marina"
+  | "wifi"
+  | "parking_space";
+
 export type PropertyFeature = {
   label: string;
   icon:
@@ -15,6 +25,7 @@ export type PropertyFeature = {
     | "balcony"
     | "beach"
     | "marina";
+  amenityId?: PropertyAmenityId;
 };
 
 export type Property = {
@@ -344,9 +355,7 @@ async function submitPropertyForm(
   }
   if (input.code) formData.append("code", input.code);
   if (input.badge) formData.append("badge", input.badge);
-  if (input.features !== undefined) {
-    formData.append("features", JSON.stringify(input.features));
-  }
+  formData.append("features", JSON.stringify(input.features ?? []));
 
   if ("existingCoverUrl" in input && input.existingCoverUrl) {
     formData.append("existingCoverUrl", toRelativeMediaUrl(input.existingCoverUrl));

@@ -31,7 +31,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { LazyPropertyMap } from "@/components/LazyPropertyMap";
 import type { Property } from "@/lib/properties";
 import { submitInquiry } from "@/lib/properties";
-import { FEATURE_ICONS } from "@/lib/property-features";
+import { PropertyFeaturesGrid } from "@/components/PropertyFeaturesGrid";
 import { toast } from "sonner";
 
 function PropertyGallery({ property }: { property: Property }) {
@@ -290,26 +290,7 @@ export function PropertyDetail({ property, similar }: { property: Property; simi
 
             <section>
               <h2 className="font-display text-2xl text-foreground">Diferenciais do imóvel</h2>
-              {property.features.length > 0 ? (
-                <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                  {property.features.map((feature) => {
-                    const Icon = FEATURE_ICONS[feature.icon];
-                    return (
-                      <div
-                        key={feature.label}
-                        className="flex flex-col items-center gap-2 rounded-lg border border-border/70 bg-cream/50 px-4 py-5 text-center"
-                      >
-                        <Icon className="h-6 w-6 text-gold" strokeWidth={1.5} />
-                        <span className="text-xs font-medium text-foreground">{feature.label}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <p className="mt-4 text-sm text-muted-foreground">
-                  Nenhum diferencial cadastrado para este imóvel.
-                </p>
-              )}
+              <PropertyFeaturesGrid features={property.features} />
             </section>
           </div>
 

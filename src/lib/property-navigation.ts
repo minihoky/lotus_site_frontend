@@ -1,5 +1,4 @@
 import type { ParsedLocation } from "@tanstack/react-router";
-import type { MakeRouteMatchUnion } from "@tanstack/react-router";
 
 import type { Property } from "@/lib/properties";
 
@@ -27,34 +26,9 @@ export function getPropertyFromLinkState(state: unknown, slug: string): Property
   return property;
 }
 
-export function findPropertyInMatches(
-  matches: Array<MakeRouteMatchUnion>,
-  slug: string,
-): Property | undefined {
-  for (const match of matches) {
-    if (match.routeId !== "/" || !match.loaderData) continue;
-
-    const properties = match.loaderData;
-    if (!Array.isArray(properties)) continue;
-
-    const found = properties.find(
-      (item): item is Property =>
-        typeof item === "object" &&
-        item !== null &&
-        "slug" in item &&
-        (item as Property).slug === slug,
-    );
-
-    if (found && isPropertyDetailReady(found)) return found;
-  }
-
-  return undefined;
-}
-
 export function resolveCachedProperty(
   slug: string,
   location: ParsedLocation,
-  matches: Array<MakeRouteMatchUnion>,
 ): Property | undefined {
-  return getPropertyFromLinkState(location.state, slug) ?? findPropertyInMatches(matches, slug);
+  return getPropertyFromLinkState(location.state, slug);
 }

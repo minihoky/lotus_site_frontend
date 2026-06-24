@@ -16,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { PropertyAmenityCard } from "@/components/PropertyAmenityCard";
 import { createProperty, fetchCondominiums, updateProperty, type Property } from "@/lib/api";
 import {
   AMENITY_CATALOG,
@@ -331,27 +332,23 @@ function PropertyAmenitiesField({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div
+      className="grid grid-cols-2 gap-3 sm:grid-cols-4"
+      role="group"
+      aria-label="Diferenciais do imóvel"
+    >
       {AMENITY_CATALOG.map((amenity) => {
         const Icon = FEATURE_ICONS[amenity.icon];
-        const isSelected = selected.includes(amenity.id);
         return (
-          <button
+          <PropertyAmenityCard
             key={amenity.id}
-            type="button"
+            icon={Icon}
+            label={amenity.label}
+            selected={selected.includes(amenity.id)}
+            interactive
             disabled={submitting}
             onClick={() => toggleAmenity(amenity.id)}
-            className={cn(
-              "flex flex-col items-center gap-2 rounded-lg border px-3 py-4 text-center transition-colors",
-              isSelected
-                ? "border-gold bg-gold-soft/50"
-                : "border-border/70 bg-cream/50 hover:border-gold/40",
-            )}
-            aria-pressed={isSelected}
-          >
-            <Icon className="h-6 w-6 text-gold" strokeWidth={1.5} />
-            <span className="text-xs font-medium text-foreground">{amenity.label}</span>
-          </button>
+          />
         );
       })}
     </div>
@@ -523,7 +520,12 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
         toast.success(`Imóvel "${created.title}" criado com sucesso!`);
       }
 
-      await router.invalidate();
+      await router.invalidate({
+        filter: (match) =>
+          match.routeId === "/admin/" ||
+          match.routeId === "/" ||
+          match.routeId === "/imoveis/$slug",
+      });
       handleOpenChange(false);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Não foi possível salvar o imóvel.");

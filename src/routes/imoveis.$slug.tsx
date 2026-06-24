@@ -4,26 +4,22 @@ import { Footer } from "@/components/sections/Footer";
 import { PropertyDetail } from "@/components/sections/PropertyDetail";
 import { PropertyDetailPending } from "@/components/PropertyDetailPending";
 import { PropertyCard } from "@/components/PropertyCard";
-import { resolveCachedProperty } from "@/lib/property-navigation";
 import { fetchPropertyBySlug, fetchSimilarProperties, type Property } from "@/lib/properties";
 
 export const Route = createFileRoute("/imoveis/$slug")({
-  loader: async ({ params, location, matches }) => {
-    const cached = resolveCachedProperty(params.slug, location, matches);
-
-    const property =
-      cached ??
-      (await fetchPropertyBySlug(params.slug).then((result) => {
-        if (!result) throw notFound();
-        return result;
-      }));
+  loader: async ({ params }) => {
+    const property = await fetchPropertyBySlug(params.slug).then((result) => {
+      if (!result) throw notFound();
+      return result;
+    });
 
     return {
       property,
       similar: defer(fetchSimilarProperties(params.slug)),
     };
   },
-  staleTime: 60_000,
+  staleTime: 0,
+  preloadStaleTime: 0,
   pendingMs: 0,
   pendingMinMs: 150,
   pendingComponent: PropertyDetailPending,
