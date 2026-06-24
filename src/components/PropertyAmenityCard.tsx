@@ -51,5 +51,3 @@ export function PropertyAmenityCard({
 
   return <div className={className}>{content}</div>;
 }
-
-///

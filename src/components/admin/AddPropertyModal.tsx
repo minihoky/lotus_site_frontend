@@ -16,14 +16,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PropertyAmenityCard } from "@/components/PropertyAmenityCard";
+import { PropertyAmenitiesField } from "@/components/PropertyAmenitiesField";
 import { createProperty, fetchCondominiums, updateProperty, type Property } from "@/lib/api";
 import {
-  AMENITY_CATALOG,
-  FEATURE_ICONS,
   amenitiesToFeatures,
   featuresToAmenityIds,
-  toggleAmenitySelection,
   type AmenityId,
 } from "@/lib/property-features";
 import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
@@ -317,43 +314,6 @@ function GalleryUploadZone({
   );
 }
 
-function PropertyAmenitiesField({
-  selected,
-  onChange,
-  submitting,
-}: {
-  selected: AmenityId[];
-  onChange: (next: AmenityId[]) => void;
-  submitting: boolean;
-}) {
-  function toggleAmenity(id: AmenityId) {
-    onChange(toggleAmenitySelection(selected, id));
-  }
-
-  return (
-    <div
-      className="grid grid-cols-2 gap-3 sm:grid-cols-4"
-      role="group"
-      aria-label="Diferenciais do imóvel"
-    >
-      {AMENITY_CATALOG.map((amenity) => {
-        const Icon = FEATURE_ICONS[amenity.icon];
-        return (
-          <PropertyAmenityCard
-            key={amenity.id}
-            icon={Icon}
-            label={amenity.label}
-            selected={selected.includes(amenity.id)}
-            interactive
-            disabled={submitting}
-            onClick={() => toggleAmenity(amenity.id)}
-          />
-        );
-      })}
-    </div>
-  );
-}
-
 export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyModalProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -363,6 +323,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [condominiumSuggestions, setCondominiumSuggestions] = useState<string[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<AmenityId[]>([]);
+  const [parkingSpots, setParkingSpots] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
@@ -374,6 +335,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverPreview(null);
     setGalleryItems([]);
     setSelectedAmenities([]);
+    setParkingSpots(0);
     formRef.current?.reset();
   }
 
@@ -382,6 +344,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverPreview(nextProperty.image);
     setGalleryItems(nextProperty.gallery.map((url) => ({ key: url, preview: url })));
     setSelectedAmenities(featuresToAmenityIds(nextProperty.features));
+    setParkingSpots(nextProperty.parking);
   }
 
   useEffect(() => {
@@ -623,6 +586,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                   className="h-10 rounded-lg border-border/70"
                   required
                   disabled={submitting}
+                  onChange={(event) => setParkingSpots(Number(event.target.value) || 0)}
                 />
               </div>
               <div className="space-y-2">
@@ -671,6 +635,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
             <PropertyAmenitiesField
               selected={selectedAmenities}
               onChange={setSelectedAmenities}
+              parking={parkingSpots}
               submitting={submitting}
             />
           </section>
