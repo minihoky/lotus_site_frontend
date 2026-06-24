@@ -88,6 +88,15 @@ type ApiItemResponse<T> = { data: T };
 const DEFAULT_API_ORIGIN = "http://127.0.0.1:3001";
 
 function getApiBase(): string {
+  // Vercel injects env vars at runtime in serverless functions; VITE_* is also
+  // inlined at build time — check both so SSR works even if the build missed it.
+  const runtimeApiUrl =
+    typeof process !== "undefined" ? process.env.VITE_API_URL : undefined;
+
+  if (runtimeApiUrl) {
+    return runtimeApiUrl;
+  }
+
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
   }

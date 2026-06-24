@@ -1,7 +1,7 @@
-import { i as fetchInquiries, o as fetchProperties } from "./api-B-dNQuz5.mjs";
+import { i as fetchInquiries, o as fetchProperties } from "./api-BZGsNEkr.mjs";
 import { f as lazyRouteComponent, p as createFileRoute } from "../_libs/@tanstack/react-router+[...].mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/admin-Bv1uL3mo.js
-var $$splitComponentImporter = () => import("./admin-CKk5Czgl.mjs");
+//#region node_modules/.nitro/vite/services/ssr/assets/admin-CT96Ko2n.js
+var $$splitComponentImporter = () => import("./admin-BSNibpk7.mjs");
 var Route = createFileRoute("/admin/")({
 	loader: async () => {
 		const [recentProperties, recentInquiries] = await Promise.all([fetchProperties({ sort: "recent" }), fetchInquiries()]);

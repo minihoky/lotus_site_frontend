@@ -1,5 +1,5 @@
 import { i as __toESM } from "../_runtime.mjs";
-import { f as submitInquiry } from "./api-B-dNQuz5.mjs";
+import { f as submitInquiry } from "./api-BZGsNEkr.mjs";
 import { u as require_react } from "../_libs/@floating-ui/react-dom+[...].mjs";
 import { h as Link } from "../_libs/@tanstack/react-router+[...].mjs";
 import { A as Slot, F as require_jsx_runtime } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
@@ -7,9 +7,9 @@ import { i as cn, n as Input, t as Button } from "./input-BTXCllkk.mjs";
 import { n as Textarea, t as Label } from "./textarea-DUswk0VF.mjs";
 import { $ as Car, B as Ellipsis, C as MessageCircle, D as Mail, E as MapPin, H as Dumbbell, I as Heart, J as ChevronRight, N as Images, T as Maximize, Y as ChevronLeft, Z as ChefHat, c as TreePine, d as Shield, i as Waves, it as Bath, n as Wind, ot as ArrowRight, p as Share2, r as Wifi, rt as BedDouble, tt as Building2, y as Phone } from "../_libs/lucide-react.mjs";
 import { n as toast } from "../_libs/sonner.mjs";
-import { t as Route } from "./imoveis._slug-DguizRGz.mjs";
+import { t as Route } from "./imoveis._slug-BG4Yw9rP.mjs";
 import { n as Header, r as PropertyCard, t as Footer } from "./PropertyCard-Vhw8rX1s.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/imoveis._slug-CdN9gwxS.js
+//#region node_modules/.nitro/vite/services/ssr/assets/imoveis._slug-DCsFfc7v.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var Breadcrumb = import_react.forwardRef(({ ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("nav", {

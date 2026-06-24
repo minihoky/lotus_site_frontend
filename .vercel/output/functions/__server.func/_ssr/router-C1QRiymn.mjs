@@ -2,13 +2,13 @@ import { i as __toESM } from "../_runtime.mjs";
 import { u as require_react } from "../_libs/@floating-ui/react-dom+[...].mjs";
 import { c as HeadContent, d as Outlet, f as lazyRouteComponent, g as useRouter, h as Link, m as createRootRouteWithContext, p as createFileRoute, s as Scripts, u as createRouter } from "../_libs/@tanstack/react-router+[...].mjs";
 import { F as require_jsx_runtime } from "../_libs/@radix-ui/react-alert-dialog+[...].mjs";
-import { t as Route } from "./admin-Bv1uL3mo.mjs";
+import { t as Route } from "./admin-CT96Ko2n.mjs";
 import { t as QueryClient } from "../_libs/tanstack__query-core.mjs";
 import { n as QueryClientProvider } from "../_libs/tanstack__react-query.mjs";
 import { t as Toaster } from "../_libs/sonner.mjs";
-import { t as Route$2 } from "./imoveis._slug-DguizRGz.mjs";
-import { t as Route$3 } from "./routes-ImXGuRew.mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/router-CXN7vNGc.js
+import { t as Route$2 } from "./imoveis._slug-BG4Yw9rP.mjs";
+import { t as Route$3 } from "./routes-CbArFDJO.mjs";
+//#region node_modules/.nitro/vite/services/ssr/assets/router-C1QRiymn.js
 var import_react = /* @__PURE__ */ __toESM(require_react());
 var import_jsx_runtime = require_jsx_runtime();
 var styles_default = "/assets/styles-C-AXaCsA.css";

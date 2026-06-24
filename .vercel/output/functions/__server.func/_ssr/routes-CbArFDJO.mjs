@@ -1,7 +1,7 @@
-import { o as fetchProperties } from "./api-B-dNQuz5.mjs";
+import { o as fetchProperties } from "./api-BZGsNEkr.mjs";
 import { f as lazyRouteComponent, p as createFileRoute } from "../_libs/@tanstack/react-router+[...].mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/routes-ImXGuRew.js
-var $$splitComponentImporter = () => import("./routes-BrIf_kQM.mjs");
+//#region node_modules/.nitro/vite/services/ssr/assets/routes-CbArFDJO.js
+var $$splitComponentImporter = () => import("./routes-Dt8DJMox.mjs");
 var Route = createFileRoute("/")({
 	loader: () => fetchProperties({ sort: "recent" }),
 	head: () => ({ meta: [

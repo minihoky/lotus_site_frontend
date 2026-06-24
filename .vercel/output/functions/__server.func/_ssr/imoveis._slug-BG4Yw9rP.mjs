@@ -1,7 +1,7 @@
-import { c as fetchSimilarProperties, s as fetchPropertyBySlug } from "./api-B-dNQuz5.mjs";
+import { c as fetchSimilarProperties, s as fetchPropertyBySlug } from "./api-BZGsNEkr.mjs";
 import { A as notFound, f as lazyRouteComponent, p as createFileRoute } from "../_libs/@tanstack/react-router+[...].mjs";
-//#region node_modules/.nitro/vite/services/ssr/assets/imoveis._slug-DguizRGz.js
-var $$splitComponentImporter = () => import("./imoveis._slug-CdN9gwxS.mjs");
+//#region node_modules/.nitro/vite/services/ssr/assets/imoveis._slug-BG4Yw9rP.js
+var $$splitComponentImporter = () => import("./imoveis._slug-DCsFfc7v.mjs");
 var Route = createFileRoute("/imoveis/$slug")({
 	loader: async ({ params }) => {
 		const property = await fetchPropertyBySlug(params.slug);

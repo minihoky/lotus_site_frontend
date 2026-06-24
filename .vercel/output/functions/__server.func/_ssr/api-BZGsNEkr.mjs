@@ -1,7 +1,6 @@
-//#region node_modules/.nitro/vite/services/ssr/assets/api-B-dNQuz5.js
-var DEFAULT_API_ORIGIN = "http://127.0.0.1:3001";
+//#region node_modules/.nitro/vite/services/ssr/assets/api-BZGsNEkr.js
 function getApiBase() {
-	return DEFAULT_API_ORIGIN;
+	return "https://lotus-sit-dev-4.onrender.com";
 }
 async function apiFetch(path, init) {
 	const url = `${getApiBase()}${path}`;
