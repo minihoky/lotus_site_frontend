@@ -20,7 +20,9 @@ import { PropertyAmenitiesField } from "@/components/PropertyAmenitiesField";
 import { createProperty, fetchCondominiums, updateProperty, type Property } from "@/lib/api";
 import {
   amenitiesToFeatures,
+  extractCustomFeatures,
   featuresToAmenityIds,
+  mergeFeaturesForStorage,
   type AmenityId,
 } from "@/lib/property-features";
 import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
@@ -323,6 +325,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [condominiumSuggestions, setCondominiumSuggestions] = useState<string[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<AmenityId[]>([]);
+  const [customFeatures, setCustomFeatures] = useState<Property["features"]>([]);
   const [parkingSpots, setParkingSpots] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
@@ -335,6 +338,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverPreview(null);
     setGalleryItems([]);
     setSelectedAmenities([]);
+    setCustomFeatures([]);
     setParkingSpots(0);
     formRef.current?.reset();
   }
@@ -344,6 +348,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverPreview(nextProperty.image);
     setGalleryItems(nextProperty.gallery.map((url) => ({ key: url, preview: url })));
     setSelectedAmenities(featuresToAmenityIds(nextProperty.features));
+    setCustomFeatures(extractCustomFeatures(nextProperty.features));
     setParkingSpots(nextProperty.parking);
   }
 
@@ -429,7 +434,10 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const baths = Number(formData.get("baths"));
     const parking = Number(formData.get("parking"));
     const area = Number(formData.get("area"));
-    const features = amenitiesToFeatures(selectedAmenities, parking);
+    const features = mergeFeaturesForStorage(
+      amenitiesToFeatures(selectedAmenities, parking),
+      customFeatures,
+    );
 
     const existingGalleryUrls = galleryItems.filter((item) => !item.file).map((item) => item.preview);
     const newGalleryFiles = galleryItems.filter((item) => item.file).map((item) => item.file!);
@@ -630,11 +638,13 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           <section className="space-y-4">
             <SectionHeading number={5} title="Diferenciais do imóvel" />
             <p className="text-xs text-muted-foreground">
-              Selecione um ou mais diferenciais para exibir na página do imóvel.
+              Selecione diferenciais do catálogo e adicione características exclusivas deste imóvel.
             </p>
             <PropertyAmenitiesField
               selected={selectedAmenities}
               onChange={setSelectedAmenities}
+              customFeatures={customFeatures}
+              onCustomFeaturesChange={setCustomFeatures}
               parking={parkingSpots}
               submitting={submitting}
             />

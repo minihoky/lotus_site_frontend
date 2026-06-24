@@ -1,6 +1,6 @@
 import type { PropertyFeature } from "@/lib/api";
 import { PropertyAmenityCard } from "@/components/PropertyAmenityCard";
-import { catalogFeaturesForDisplay, FEATURE_ICONS } from "@/lib/property-features";
+import { allFeaturesForDisplay, FEATURE_ICONS } from "@/lib/property-features";
 import { cn } from "@/lib/utils";
 
 type PropertyFeaturesGridProps = {
@@ -18,7 +18,7 @@ export function PropertyFeaturesGrid({
   emptyMessage = "No key features listed for this property.",
   usePageLabels = true,
 }: PropertyFeaturesGridProps) {
-  const items = catalogFeaturesForDisplay(features ?? [], parking, { usePageLabels });
+  const items = allFeaturesForDisplay(features ?? [], parking, { usePageLabels });
 
   if (items.length === 0) {
     return (

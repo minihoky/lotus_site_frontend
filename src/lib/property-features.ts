@@ -35,6 +35,21 @@ export const AMENITY_CATALOG: {
   { id: "parking_space", label: "Vaga de estacionamento", pageLabel: "Parking", icon: "parking" },
 ];
 
+export const FEATURE_ICON_OPTIONS: { value: PropertyFeatureIcon; label: string }[] = [
+  { value: "pool", label: "Piscina" },
+  { value: "gourmet", label: "Gourmet / Cozinha" },
+  { value: "security", label: "Segurança" },
+  { value: "ac", label: "Climatização" },
+  { value: "gym", label: "Academia / Fitness" },
+  { value: "garden", label: "Jardim / Área verde" },
+  { value: "wifi", label: "Wi-Fi / Conectividade" },
+  { value: "parking", label: "Estacionamento" },
+  { value: "elevator", label: "Elevador" },
+  { value: "balcony", label: "Varanda / Terraço" },
+  { value: "beach", label: "Praia" },
+  { value: "marina", label: "Marina" },
+];
+
 export const FEATURE_ICONS: Record<PropertyFeatureIcon, LucideIcon> = {
   pool: Waves,
   gourmet: ChefHat,
@@ -77,6 +92,66 @@ export function toggleAmenitySelection(selected: AmenityId[], id: AmenityId): Am
   return sortAmenityIds(next);
 }
 
+function amenityIdForFeature(feature: PropertyFeature): AmenityId | undefined {
+  if (feature.amenityId && AMENITY_ID_SET.has(feature.amenityId)) {
+    return feature.amenityId;
+  }
+
+  const byLabel = AMENITY_CATALOG.find(
+    (amenity) =>
+      amenity.label.toLowerCase() === feature.label.toLowerCase() ||
+      amenity.pageLabel.toLowerCase() === feature.label.toLowerCase(),
+  );
+  if (byLabel) return byLabel.id;
+
+  for (const amenity of AMENITY_CATALOG) {
+    const aliases = LABEL_ALIASES[amenity.id];
+    if (aliases?.some((pattern) => pattern.test(feature.label))) {
+      return amenity.id;
+    }
+  }
+
+  if (feature.icon === "parking") {
+    return "parking_space";
+  }
+
+  return AMENITY_CATALOG.find((amenity) => amenity.icon === feature.icon)?.id;
+}
+
+export function featuresToAmenityIds(features: PropertyFeature[]): AmenityId[] {
+  const ids = new Set<AmenityId>();
+  for (const feature of features) {
+    const id = amenityIdForFeature(feature);
+    if (id) ids.add(id);
+  }
+  return sortAmenityIds([...ids]);
+}
+
+function dedupeFeatures(features: PropertyFeature[]): PropertyFeature[] {
+  const seen = new Set<string>();
+  const result: PropertyFeature[] = [];
+
+  for (const feature of features) {
+    const key = feature.amenityId ?? `${feature.icon}:${feature.label.toLowerCase()}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(feature);
+  }
+
+  return result;
+}
+
+export function extractCustomFeatures(features: PropertyFeature[]): PropertyFeature[] {
+  return dedupeFeatures(
+    (features ?? []).filter(
+      (feature) =>
+        FEATURE_ICONS[feature.icon] &&
+        feature.label.trim().length > 0 &&
+        !amenityIdForFeature(feature),
+    ),
+  );
+}
+
 export function catalogFeaturesForDisplay(
   features: PropertyFeature[],
   parking?: number,
@@ -112,6 +187,20 @@ export function catalogFeaturesForDisplay(
   });
 }
 
+export function allFeaturesForDisplay(
+  features: PropertyFeature[],
+  parking?: number,
+  options?: { usePageLabels?: boolean },
+): PropertyFeature[] {
+  const catalog = catalogFeaturesForDisplay(features, parking, options);
+  const custom = extractCustomFeatures(features).map((feature) => ({
+    label: feature.label.trim(),
+    icon: feature.icon,
+  }));
+
+  return dedupeFeatures([...catalog, ...custom]);
+}
+
 export function amenitiesToFeatures(
   selectedIds: AmenityId[],
   parking?: number,
@@ -135,39 +224,18 @@ export function amenitiesToFeatures(
   });
 }
 
-function amenityIdForFeature(feature: PropertyFeature): AmenityId | undefined {
-  if (feature.amenityId && AMENITY_ID_SET.has(feature.amenityId)) {
-    return feature.amenityId;
-  }
+export function mergeFeaturesForStorage(
+  catalogFeatures: PropertyFeature[],
+  customFeatures: PropertyFeature[],
+): PropertyFeature[] {
+  const custom = customFeatures
+    .map((feature) => ({
+      label: feature.label.trim(),
+      icon: feature.icon,
+    }))
+    .filter((feature) => feature.label.length > 0 && FEATURE_ICONS[feature.icon]);
 
-  const byLabel = AMENITY_CATALOG.find(
-    (amenity) =>
-      amenity.label.toLowerCase() === feature.label.toLowerCase() ||
-      amenity.pageLabel.toLowerCase() === feature.label.toLowerCase(),
-  );
-  if (byLabel) return byLabel.id;
-
-  for (const amenity of AMENITY_CATALOG) {
-    const aliases = LABEL_ALIASES[amenity.id];
-    if (aliases?.some((pattern) => pattern.test(feature.label))) {
-      return amenity.id;
-    }
-  }
-
-  if (feature.icon === "parking") {
-    return "parking_space";
-  }
-
-  return AMENITY_CATALOG.find((amenity) => amenity.icon === feature.icon)?.id;
-}
-
-export function featuresToAmenityIds(features: PropertyFeature[]): AmenityId[] {
-  const ids = new Set<AmenityId>();
-  for (const feature of features) {
-    const id = amenityIdForFeature(feature);
-    if (id) ids.add(id);
-  }
-  return sortAmenityIds([...ids]);
+  return dedupeFeatures([...catalogFeatures, ...custom]);
 }
 
 export function resolveFeaturesForDisplay(features: PropertyFeature[]): PropertyFeature[] {
