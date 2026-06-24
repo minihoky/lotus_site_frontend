@@ -16,14 +16,12 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PropertyAmenitiesField } from "@/components/PropertyAmenitiesField";
 import { createProperty, fetchCondominiums, updateProperty, type Property } from "@/lib/api";
 import {
   amenitiesToFeatures,
   extractCustomFeatures,
   featuresToAmenityIds,
   mergeFeaturesForStorage,
-  type AmenityId,
 } from "@/lib/property-features";
 import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
 import { cn } from "@/lib/utils";
@@ -324,9 +322,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [condominiumSuggestions, setCondominiumSuggestions] = useState<string[]>([]);
-  const [selectedAmenities, setSelectedAmenities] = useState<AmenityId[]>([]);
-  const [customFeatures, setCustomFeatures] = useState<Property["features"]>([]);
-  const [parkingSpots, setParkingSpots] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
@@ -337,9 +332,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(null);
     setGalleryItems([]);
-    setSelectedAmenities([]);
-    setCustomFeatures([]);
-    setParkingSpots(0);
     formRef.current?.reset();
   }
 
@@ -347,9 +339,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(nextProperty.image);
     setGalleryItems(nextProperty.gallery.map((url) => ({ key: url, preview: url })));
-    setSelectedAmenities(featuresToAmenityIds(nextProperty.features));
-    setCustomFeatures(extractCustomFeatures(nextProperty.features));
-    setParkingSpots(nextProperty.parking);
   }
 
   useEffect(() => {
@@ -434,11 +423,14 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const baths = Number(formData.get("baths"));
     const parking = Number(formData.get("parking"));
     const area = Number(formData.get("area"));
-    const features = mergeFeaturesForStorage(
-      amenitiesToFeatures(selectedAmenities, parking),
-      customFeatures,
-      parking,
-    );
+    const features =
+      isEdit && property
+        ? mergeFeaturesForStorage(
+            amenitiesToFeatures(featuresToAmenityIds(property.features), parking),
+            extractCustomFeatures(property.features),
+            parking,
+          )
+        : mergeFeaturesForStorage([], [], parking);
 
     const existingGalleryUrls = galleryItems.filter((item) => !item.file).map((item) => item.preview);
     const newGalleryFiles = galleryItems.filter((item) => item.file).map((item) => item.file!);
@@ -595,7 +587,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                   className="h-10 rounded-lg border-border/70"
                   required
                   disabled={submitting}
-                  onChange={(event) => setParkingSpots(Number(event.target.value) || 0)}
                 />
               </div>
               <div className="space-y-2">
@@ -637,22 +628,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={5} title="Diferenciais do imóvel" />
-            <p className="text-xs text-muted-foreground">
-              Selecione diferenciais do catálogo e adicione características exclusivas deste imóvel.
-            </p>
-            <PropertyAmenitiesField
-              selected={selectedAmenities}
-              onChange={setSelectedAmenities}
-              customFeatures={customFeatures}
-              onCustomFeaturesChange={setCustomFeatures}
-              parking={parkingSpots}
-              submitting={submitting}
-            />
-          </section>
-
-          <section className="space-y-4">
-            <SectionHeading number={6} title="Imagem de capa" />
+            <SectionHeading number={5} title="Imagem de capa" />
             <ImageUploadZone
               id="property-cover"
               label="Imagem de capa"
@@ -668,7 +644,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={7} title="Galeria de imagens" />
+            <SectionHeading number={6} title="Galeria de imagens" />
             <GalleryUploadZone
               id="property-gallery"
               label="Imagens do imóvel"
@@ -679,12 +655,12 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={8} title="Finalidade e localização" />
+            <SectionHeading number={7} title="Finalidade e localização" />
             <PropertyListingFields property={property} submitting={submitting} />
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={9} title="Preço" />
+            <SectionHeading number={8} title="Preço" />
             <div className="space-y-2">
               <RequiredLabel htmlFor="property-price">Preço do imóvel</RequiredLabel>
               <div className="flex">
