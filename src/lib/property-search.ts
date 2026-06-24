@@ -8,7 +8,7 @@ export const PROPERTY_PURPOSES = [
 export type PropertyPurpose = (typeof PROPERTY_PURPOSES)[number]["value"];
 
 export type HeroSearchFilters = {
-  purpose?: PropertyPurpose;
+  purpose?: PropertyPurpose | "";
   propertyType?: string;
   condominium?: string;
   locationOrCode?: string;
@@ -16,13 +16,71 @@ export type HeroSearchFilters = {
   maxPrice?: number;
 };
 
+const PROPERTY_CODE_PATTERN = /^(?:[A-Z]{2,}[-_])?\d{1,6}$|^[A-Z]{2,}[-_][A-Z0-9][-A-Z0-9]*$/i;
+
+export function isPropertyCode(input: string): boolean {
+  const trimmed = input.trim();
+  if (!trimmed) return false;
+  return PROPERTY_CODE_PATTERN.test(trimmed.replace(/\s/g, ""));
+}
+
+export function normalizeSearchText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function propertySearchableFields(property: Property): string[] {
+  const derivedCode = property.code ?? property.slug.toUpperCase().replace(/-/g, "_");
+  return [
+    property.location,
+    property.address,
+    property.title,
+    property.code,
+    derivedCode,
+    property.slug,
+    property.slug.replace(/-/g, " "),
+    property.condominium,
+  ].filter((field): field is string => Boolean(field));
+}
+
+function matchesLocationOrCode(property: Property, query: string): boolean {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return true;
+
+  if (isPropertyCode(query)) {
+    const compactQuery = query.trim().replace(/\s/g, "").toUpperCase();
+    const codeFields = [property.code, property.slug.toUpperCase().replace(/-/g, "_")]
+      .filter(Boolean)
+      .map((value) => value!.toUpperCase());
+    if (codeFields.some((value) => value.includes(compactQuery) || compactQuery.includes(value))) {
+      return true;
+    }
+  }
+
+  return propertySearchableFields(property).some((field) =>
+    normalizeSearchText(field).includes(normalizedQuery),
+  );
+}
+
 export function heroSearchToPropertyFilters(filters: HeroSearchFilters): PropertyFilters {
   const result: PropertyFilters = {};
 
   if (filters.purpose) result.purpose = filters.purpose;
   if (filters.propertyType) result.propertyType = filters.propertyType;
   if (filters.condominium) result.condominium = filters.condominium;
-  if (filters.locationOrCode) result.q = filters.locationOrCode.trim();
+
+  if (filters.locationOrCode) {
+    const term = filters.locationOrCode.trim();
+    if (isPropertyCode(term)) {
+      result.code = term;
+    } else {
+      result.q = term;
+    }
+  }
+
   if (filters.minPrice !== undefined && filters.minPrice > 0) result.minPrice = filters.minPrice;
   if (filters.maxPrice !== undefined && filters.maxPrice > 0) result.maxPrice = filters.maxPrice;
 
@@ -40,17 +98,8 @@ export function applyPropertyFilters(properties: Property[], filters: HeroSearch
     if (filters.condominium && property.condominium !== filters.condominium) {
       return false;
     }
-    if (filters.locationOrCode) {
-      const query = filters.locationOrCode.toLowerCase();
-      const searchable = [
-        property.location,
-        property.address,
-        property.title,
-        property.code,
-        property.slug,
-      ];
-      const matches = searchable.some((field) => field?.toLowerCase().includes(query));
-      if (!matches) return false;
+    if (filters.locationOrCode && !matchesLocationOrCode(property, filters.locationOrCode)) {
+      return false;
     }
     if (filters.minPrice !== undefined && property.priceValue < filters.minPrice) {
       return false;

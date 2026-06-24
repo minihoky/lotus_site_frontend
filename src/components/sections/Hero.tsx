@@ -30,7 +30,7 @@ const inputClassName =
   "h-11 w-full rounded-md border border-border/80 bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-gold/60";
 
 export function Hero({ condominiums, onSearch }: HeroProps) {
-  const [purpose, setPurpose] = useState<PropertyPurpose>("comprar");
+  const [purpose, setPurpose] = useState<PropertyPurpose | "">("comprar");
   const [propertyType, setPropertyType] = useState("");
   const [condominium, setCondominium] = useState("");
   const [locationOrCode, setLocationOrCode] = useState("");
@@ -61,7 +61,7 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
 
     setPriceError(null);
     onSearch({
-      purpose,
+      purpose: purpose || undefined,
       propertyType: propertyType || undefined,
       condominium: condominium || undefined,
       locationOrCode: locationOrCode.trim() || undefined,
@@ -116,10 +116,11 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
               <FieldLabel>FINALIDADE</FieldLabel>
               <select
                 value={purpose}
-                onChange={(e) => setPurpose(e.target.value as PropertyPurpose)}
+                onChange={(e) => setPurpose(e.target.value as PropertyPurpose | "")}
                 className={selectClassName}
                 aria-label="Finalidade"
               >
+                <option value="">Todos</option>
                 {PROPERTY_PURPOSES.map(({ value, label }) => (
                   <option key={value} value={value}>
                     {label}

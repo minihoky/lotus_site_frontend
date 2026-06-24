@@ -7,11 +7,7 @@ import { Differentials } from "@/components/sections/Differentials";
 import { CTABanner } from "@/components/sections/CTABanner";
 import { Footer } from "@/components/sections/Footer";
 import { fetchProperties, type Property } from "@/lib/properties";
-import {
-  applyPropertyFilters,
-  heroSearchToPropertyFilters,
-  type HeroSearchFilters,
-} from "@/lib/property-search";
+import { applyPropertyFilters, type HeroSearchFilters } from "@/lib/property-search";
 
 export const Route = createFileRoute("/")({
   loader: () => fetchProperties({ sort: "recent" }),
@@ -48,22 +44,12 @@ function Index() {
   const properties = Route.useLoaderData();
   const [filteredProperties, setFilteredProperties] = useState<Property[]>(properties);
   const [hasSearched, setHasSearched] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
 
   const condominiums = useMemo(() => buildCondominiums(properties), [properties]);
 
-  async function handleSearch(filters: HeroSearchFilters) {
+  function handleSearch(filters: HeroSearchFilters) {
     setHasSearched(true);
-    setIsSearching(true);
-
-    try {
-      const results = await fetchProperties(heroSearchToPropertyFilters(filters));
-      setFilteredProperties(results);
-    } catch {
-      setFilteredProperties(applyPropertyFilters(properties, filters));
-    } finally {
-      setIsSearching(false);
-    }
+    setFilteredProperties(applyPropertyFilters(properties, filters));
 
     if (typeof window !== "undefined") {
       const section = document.getElementById("imoveis");
@@ -80,8 +66,7 @@ function Index() {
         <Hero condominiums={condominiums} onSearch={handleSearch} />
         <FeaturedProperties
           properties={filteredProperties}
-          emptySearch={hasSearched && !isSearching && filteredProperties.length === 0}
-          isLoading={isSearching}
+          emptySearch={hasSearched && filteredProperties.length === 0}
         />
         <Differentials />
         <CTABanner />
