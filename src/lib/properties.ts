@@ -26,4 +26,6 @@ export {
   createProperty,
   updateProperty,
   deleteProperty,
+  resolveMediaUrl,
+  getApiOrigin,
 } from "./api";

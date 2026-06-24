@@ -125,7 +125,7 @@ function PropertyGallery({ property }: { property: Property }) {
               i === activeIndex ? "border-gold" : "border-transparent opacity-80 hover:opacity-100"
             }`}
           >
-            <img src={src} alt="" className="aspect-[4/3] w-full object-cover" />
+            <img src={src} alt="" loading="lazy" className="aspect-[4/3] w-full object-cover" />
           </button>
         ))}
       </div>

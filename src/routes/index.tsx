@@ -10,6 +10,7 @@ import { fetchProperties, type Property } from "@/lib/properties";
 
 export const Route = createFileRoute("/")({
   loader: () => fetchProperties({ sort: "recent" }),
+  staleTime: 60_000,
   head: () => ({
     meta: [
       { title: "Lótus Imóveis — Realizando sonhos, construindo histórias" },

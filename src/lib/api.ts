@@ -91,6 +91,11 @@ function normalizeApiOrigin(url: string): string {
   return url.replace(/\/$/, "");
 }
 
+/** Public API origin used to resolve uploaded media paths (`/uploads/...`). */
+export function getApiOrigin(): string {
+  return getApiBase();
+}
+
 function getApiBase(): string {
   const runtimeApiUrl =
     typeof process !== "undefined"
@@ -114,6 +119,37 @@ function getApiBase(): string {
   }
 
   return "";
+}
+
+/** Turn backend-relative upload paths into absolute URLs in production. */
+export function resolveMediaUrl(url: string): string {
+  if (!url) return url;
+  if (/^(https?:|blob:|data:)/.test(url)) return url;
+
+  const base = getApiBase();
+  if (!base) return url;
+
+  return url.startsWith("/") ? `${base}${url}` : `${base}/${url}`;
+}
+
+/** Strip API origin before sending stored paths back to the backend. */
+function toRelativeMediaUrl(url: string): string {
+  if (!url || !url.startsWith("http")) return url;
+
+  const base = getApiBase();
+  if (base && url.startsWith(base)) {
+    return url.slice(base.length) || url;
+  }
+
+  return url;
+}
+
+function normalizeProperty(property: Property): Property {
+  return {
+    ...property,
+    image: resolveMediaUrl(property.image),
+    gallery: property.gallery.map(resolveMediaUrl),
+  };
 }
 
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
@@ -157,18 +193,18 @@ function toQuery(filters?: PropertyFilters): string {
 
 export async function fetchProperties(filters?: PropertyFilters): Promise<Property[]> {
   const res = await apiFetch<ApiListResponse<Property[]>>(`/api/properties${toQuery(filters)}`);
-  return res.data;
+  return res.data.map(normalizeProperty);
 }
 
 export async function fetchRecentProperties(limit = 5): Promise<Property[]> {
   const res = await apiFetch<ApiListResponse<Property[]>>(`/api/properties/recent?limit=${limit}`);
-  return res.data;
+  return res.data.map(normalizeProperty);
 }
 
 export async function fetchPropertyBySlug(slug: string): Promise<Property | undefined> {
   try {
     const res = await apiFetch<ApiItemResponse<Property>>(`/api/properties/${slug}`);
-    return res.data;
+    return normalizeProperty(res.data);
   } catch (err) {
     if (err instanceof Error && err.message === "Property not found") return undefined;
     throw err;
@@ -179,7 +215,7 @@ export async function fetchSimilarProperties(slug: string, limit = 3): Promise<P
   const res = await apiFetch<ApiListResponse<Property[]>>(
     `/api/properties/${slug}/similar?limit=${limit}`,
   );
-  return res.data;
+  return res.data.map(normalizeProperty);
 }
 
 export async function submitInquiry(input: InquiryInput): Promise<{ id: number; message: string }> {
@@ -272,10 +308,13 @@ async function submitPropertyForm(
   if (input.badge) formData.append("badge", input.badge);
 
   if ("existingCoverUrl" in input && input.existingCoverUrl) {
-    formData.append("existingCoverUrl", input.existingCoverUrl);
+    formData.append("existingCoverUrl", toRelativeMediaUrl(input.existingCoverUrl));
   }
   if ("existingGalleryUrls" in input && input.existingGalleryUrls.length > 0) {
-    formData.append("existingGallery", JSON.stringify(input.existingGalleryUrls));
+    formData.append(
+      "existingGallery",
+      JSON.stringify(input.existingGalleryUrls.map(toRelativeMediaUrl)),
+    );
   }
 
   if (input.coverImage) {
@@ -300,7 +339,7 @@ async function submitPropertyForm(
   }
 
   const res = (await response.json()) as ApiItemResponse<Property>;
-  return res.data;
+  return normalizeProperty(res.data);
 }
 
 export async function createProperty(input: CreatePropertyFormInput): Promise<Property> {

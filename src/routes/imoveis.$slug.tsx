@@ -11,6 +11,7 @@ export const Route = createFileRoute("/imoveis/$slug")({
     const similar = await fetchSimilarProperties(params.slug);
     return { property, similar };
   },
+  staleTime: 60_000,
   head: ({ loaderData }) => ({
     meta: [
       {

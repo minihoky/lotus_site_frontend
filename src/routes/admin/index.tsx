@@ -11,6 +11,7 @@ export const Route = createFileRoute("/admin/")({
     ]);
     return { recentProperties, recentInquiries };
   },
+  staleTime: 60_000,
   head: () => ({
     meta: [{ title: "Dashboard — Lótus Imóveis Admin" }],
   }),
