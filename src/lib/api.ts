@@ -63,6 +63,10 @@ export type PropertyFilters = {
   q?: string;
   badge?: PropertyBadge;
   location?: string;
+  purpose?: "comprar" | "alugar";
+  propertyType?: string;
+  condominium?: string;
+  code?: string;
   minBeds?: number;
   minPrice?: number;
   maxPrice?: number;
@@ -192,6 +196,10 @@ function toQuery(filters?: PropertyFilters): string {
   if (filters.q) params.set("q", filters.q);
   if (filters.badge) params.set("badge", filters.badge);
   if (filters.location) params.set("location", filters.location);
+  if (filters.purpose) params.set("purpose", filters.purpose);
+  if (filters.propertyType) params.set("propertyType", filters.propertyType);
+  if (filters.condominium) params.set("condominium", filters.condominium);
+  if (filters.code) params.set("code", filters.code);
   if (filters.minBeds !== undefined) params.set("minBeds", String(filters.minBeds));
   if (filters.minPrice !== undefined) params.set("minPrice", String(filters.minPrice));
   if (filters.maxPrice !== undefined) params.set("maxPrice", String(filters.maxPrice));

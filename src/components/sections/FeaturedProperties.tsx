@@ -11,9 +11,11 @@ const INITIAL_VISIBLE = 6;
 export function FeaturedProperties({
   properties,
   emptySearch = false,
+  isLoading = false,
 }: {
   properties: Property[];
   emptySearch?: boolean;
+  isLoading?: boolean;
 }) {
   const [showAll, setShowAll] = useState(false);
   const visibleProperties = showAll ? properties : properties.slice(0, INITIAL_VISIBLE);
@@ -42,7 +44,11 @@ export function FeaturedProperties({
             </button>
           ) : null}
         </div>
-        {emptySearch ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
+            Buscando imóveis...
+          </div>
+        ) : emptySearch ? (
           <div className="flex flex-col items-center justify-center py-10 text-center md:py-14">
             <img
               src={IMAGES.emptySearch}

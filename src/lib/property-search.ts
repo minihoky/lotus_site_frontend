@@ -1,9 +1,66 @@
+import type { Property, PropertyFilters } from "./api";
+
 export const PROPERTY_PURPOSES = [
   { value: "comprar", label: "Comprar" },
   { value: "alugar", label: "Alugar" },
 ] as const;
 
 export type PropertyPurpose = (typeof PROPERTY_PURPOSES)[number]["value"];
+
+export type HeroSearchFilters = {
+  purpose?: PropertyPurpose;
+  propertyType?: string;
+  condominium?: string;
+  locationOrCode?: string;
+  minPrice?: number;
+  maxPrice?: number;
+};
+
+export function heroSearchToPropertyFilters(filters: HeroSearchFilters): PropertyFilters {
+  const result: PropertyFilters = {};
+
+  if (filters.purpose) result.purpose = filters.purpose;
+  if (filters.propertyType) result.propertyType = filters.propertyType;
+  if (filters.condominium) result.condominium = filters.condominium;
+  if (filters.locationOrCode) result.q = filters.locationOrCode.trim();
+  if (filters.minPrice !== undefined && filters.minPrice > 0) result.minPrice = filters.minPrice;
+  if (filters.maxPrice !== undefined && filters.maxPrice > 0) result.maxPrice = filters.maxPrice;
+
+  return result;
+}
+
+export function applyPropertyFilters(properties: Property[], filters: HeroSearchFilters): Property[] {
+  return properties.filter((property) => {
+    if (filters.purpose && property.purpose !== filters.purpose) {
+      return false;
+    }
+    if (filters.propertyType && property.propertyType !== filters.propertyType) {
+      return false;
+    }
+    if (filters.condominium && property.condominium !== filters.condominium) {
+      return false;
+    }
+    if (filters.locationOrCode) {
+      const query = filters.locationOrCode.toLowerCase();
+      const searchable = [
+        property.location,
+        property.address,
+        property.title,
+        property.code,
+        property.slug,
+      ];
+      const matches = searchable.some((field) => field?.toLowerCase().includes(query));
+      if (!matches) return false;
+    }
+    if (filters.minPrice !== undefined && property.priceValue < filters.minPrice) {
+      return false;
+    }
+    if (filters.maxPrice !== undefined && property.priceValue > filters.maxPrice) {
+      return false;
+    }
+    return true;
+  });
+}
 
 export const PROPERTY_TYPES = [
   "Apartamento",

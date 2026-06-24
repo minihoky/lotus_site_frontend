@@ -6,17 +6,9 @@ import {
   PROPERTY_TYPES,
   handlePriceInputChange,
   parseBrazilianPrice,
+  type HeroSearchFilters,
   type PropertyPurpose,
 } from "@/lib/property-search";
-
-export type HeroSearchFilters = {
-  purpose?: PropertyPurpose;
-  propertyType?: string;
-  condominium?: string;
-  locationOrCode?: string;
-  minPrice?: number;
-  maxPrice?: number;
-};
 
 type HeroProps = {
   condominiums: string[];
@@ -46,16 +38,23 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [priceError, setPriceError] = useState<string | null>(null);
 
-  function handleSearchClick() {
-    const minPrice = parseBrazilianPrice(minPriceInput);
-    const maxPrice = parseBrazilianPrice(maxPriceInput);
+  function handleSearchSubmit(event: React.FormEvent) {
+    event.preventDefault();
 
-    if (minPrice <= 0 || maxPrice <= 0) {
-      setPriceError("Informe o valor mínimo e o valor máximo.");
+    const minPrice = minPriceInput.trim() ? parseBrazilianPrice(minPriceInput) : undefined;
+    const maxPrice = maxPriceInput.trim() ? parseBrazilianPrice(maxPriceInput) : undefined;
+
+    if (minPrice !== undefined && minPrice <= 0) {
+      setPriceError("Informe um valor mínimo válido.");
       return;
     }
 
-    if (minPrice > maxPrice) {
+    if (maxPrice !== undefined && maxPrice <= 0) {
+      setPriceError("Informe um valor máximo válido.");
+      return;
+    }
+
+    if (minPrice !== undefined && maxPrice !== undefined && minPrice > maxPrice) {
       setPriceError("O valor mínimo não pode ser maior que o valor máximo.");
       return;
     }
@@ -108,7 +107,10 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 pb-14 md:pb-16">
-        <div className="-mt-10 rounded-xl border border-border/80 bg-card p-5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:-mt-12 md:p-6">
+        <form
+          onSubmit={handleSearchSubmit}
+          className="-mt-10 rounded-xl border border-border/80 bg-card p-5 shadow-[0_8px_30px_rgba(0,0,0,0.08)] md:-mt-12 md:p-6"
+        >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
               <FieldLabel>FINALIDADE</FieldLabel>
@@ -225,8 +227,7 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
                 </p>
               ) : null}
               <button
-                type="button"
-                onClick={handleSearchClick}
+                type="submit"
                 className="flex h-11 w-full items-center justify-center gap-2.5 rounded-md bg-gold text-[11px] font-semibold tracking-[0.22em] text-primary-foreground transition-colors hover:bg-gold-dark lg:mt-[22px]"
               >
                 <Search className="h-4 w-4" />
@@ -234,7 +235,7 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
               </button>
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </section>
   );
