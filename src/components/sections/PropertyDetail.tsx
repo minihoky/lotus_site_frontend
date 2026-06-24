@@ -1,14 +1,12 @@
-import { useState, type ComponentType, type FormEvent, type ReactNode } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   Bath,
   BedDouble,
-  Building2,
   Car,
   ChevronLeft,
   ChevronRight,
-  Dumbbell,
   Heart,
   Images,
   Mail,
@@ -17,12 +15,6 @@ import {
   MessageCircle,
   Phone,
   Share2,
-  Shield,
-  TreePine,
-  Waves,
-  Wifi,
-  Wind,
-  ChefHat,
 } from "lucide-react";
 import {
   Breadcrumb,
@@ -37,22 +29,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { LazyPropertyMap } from "@/components/LazyPropertyMap";
-import type { Property, PropertyFeature } from "@/lib/properties";
+import type { Property } from "@/lib/properties";
 import { submitInquiry } from "@/lib/properties";
+import { FEATURE_ICONS } from "@/lib/property-features";
 import { toast } from "sonner";
-
-const FEATURE_ICONS: Record<PropertyFeature["icon"], ComponentType<{ className?: string }>> = {
-  pool: Waves,
-  gourmet: ChefHat,
-  security: Shield,
-  ac: Wind,
-  gym: Dumbbell,
-  garden: TreePine,
-  wifi: Wifi,
-  parking: Car,
-  elevator: Building2,
-  balcony: Maximize,
-};
 
 function PropertyGallery({ property }: { property: Property }) {
   const [activeIndex, setActiveIndex] = useState(0);
@@ -310,20 +290,26 @@ export function PropertyDetail({ property, similar }: { property: Property; simi
 
             <section>
               <h2 className="font-display text-2xl text-foreground">Diferenciais do imóvel</h2>
-              <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {property.features.map((feature) => {
-                  const Icon = FEATURE_ICONS[feature.icon];
-                  return (
-                    <div
-                      key={feature.label}
-                      className="flex flex-col items-center gap-2 rounded-lg border border-border/70 bg-cream/50 px-4 py-5 text-center"
-                    >
-                      <Icon className="h-6 w-6 text-gold" strokeWidth={1.5} />
-                      <span className="text-xs font-medium text-foreground">{feature.label}</span>
-                    </div>
-                  );
-                })}
-              </div>
+              {property.features.length > 0 ? (
+                <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  {property.features.map((feature) => {
+                    const Icon = FEATURE_ICONS[feature.icon];
+                    return (
+                      <div
+                        key={feature.label}
+                        className="flex flex-col items-center gap-2 rounded-lg border border-border/70 bg-cream/50 px-4 py-5 text-center"
+                      >
+                        <Icon className="h-6 w-6 text-gold" strokeWidth={1.5} />
+                        <span className="text-xs font-medium text-foreground">{feature.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  Nenhum diferencial cadastrado para este imóvel.
+                </p>
+              )}
             </section>
           </div>
 

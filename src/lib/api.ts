@@ -12,7 +12,9 @@ export type PropertyFeature = {
     | "wifi"
     | "parking"
     | "elevator"
-    | "balcony";
+    | "balcony"
+    | "beach"
+    | "marina";
 };
 
 export type Property = {
@@ -55,6 +57,7 @@ export type CreatePropertyFormInput = {
   badge?: PropertyBadge;
   coverImage: File;
   gallery: File[];
+  features: PropertyFeature[];
 };
 
 export type PropertySort = "recent" | "price";
@@ -313,6 +316,7 @@ export type UpdatePropertyFormInput = {
   existingCoverUrl?: string;
   gallery: File[];
   existingGalleryUrls: string[];
+  features: PropertyFeature[];
 };
 
 async function submitPropertyForm(
@@ -340,6 +344,9 @@ async function submitPropertyForm(
   }
   if (input.code) formData.append("code", input.code);
   if (input.badge) formData.append("badge", input.badge);
+  if (input.features !== undefined) {
+    formData.append("features", JSON.stringify(input.features));
+  }
 
   if ("existingCoverUrl" in input && input.existingCoverUrl) {
     formData.append("existingCoverUrl", toRelativeMediaUrl(input.existingCoverUrl));

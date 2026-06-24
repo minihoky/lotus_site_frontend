@@ -17,6 +17,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createProperty, fetchCondominiums, updateProperty, type Property } from "@/lib/api";
+import {
+  AMENITY_CATALOG,
+  FEATURE_ICONS,
+  amenitiesToFeatures,
+  featuresToAmenityIds,
+  type AmenityId,
+} from "@/lib/property-features";
 import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
 import { cn } from "@/lib/utils";
 
@@ -308,6 +315,49 @@ function GalleryUploadZone({
   );
 }
 
+function PropertyAmenitiesField({
+  selected,
+  onChange,
+  submitting,
+}: {
+  selected: AmenityId[];
+  onChange: (next: AmenityId[]) => void;
+  submitting: boolean;
+}) {
+  function toggleAmenity(id: AmenityId) {
+    onChange(
+      selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id],
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      {AMENITY_CATALOG.map((amenity) => {
+        const Icon = FEATURE_ICONS[amenity.icon];
+        const isSelected = selected.includes(amenity.id);
+        return (
+          <button
+            key={amenity.id}
+            type="button"
+            disabled={submitting}
+            onClick={() => toggleAmenity(amenity.id)}
+            className={cn(
+              "flex flex-col items-center gap-2 rounded-lg border px-3 py-4 text-center transition-colors",
+              isSelected
+                ? "border-gold bg-gold-soft/50"
+                : "border-border/70 bg-cream/50 hover:border-gold/40",
+            )}
+            aria-pressed={isSelected}
+          >
+            <Icon className="h-6 w-6 text-gold" strokeWidth={1.5} />
+            <span className="text-xs font-medium text-foreground">{amenity.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyModalProps) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -316,6 +366,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [condominiumSuggestions, setCondominiumSuggestions] = useState<string[]>([]);
+  const [selectedAmenities, setSelectedAmenities] = useState<AmenityId[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
@@ -326,6 +377,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(null);
     setGalleryItems([]);
+    setSelectedAmenities([]);
     formRef.current?.reset();
   }
 
@@ -333,6 +385,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(nextProperty.image);
     setGalleryItems(nextProperty.gallery.map((url) => ({ key: url, preview: url })));
+    setSelectedAmenities(featuresToAmenityIds(nextProperty.features));
   }
 
   useEffect(() => {
@@ -417,6 +470,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const baths = Number(formData.get("baths"));
     const parking = Number(formData.get("parking"));
     const area = Number(formData.get("area"));
+    const features = amenitiesToFeatures(selectedAmenities, parking);
 
     const existingGalleryUrls = galleryItems.filter((item) => !item.file).map((item) => item.preview);
     const newGalleryFiles = galleryItems.filter((item) => item.file).map((item) => item.file!);
@@ -445,6 +499,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           existingCoverUrl,
           gallery: newGalleryFiles,
           existingGalleryUrls,
+          features,
         });
         toast.success(`Imóvel "${updated.title}" atualizado com sucesso!`);
       } else {
@@ -463,6 +518,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           code,
           coverImage: coverFile!,
           gallery: newGalleryFiles,
+          features,
         });
         toast.success(`Imóvel "${created.title}" criado com sucesso!`);
       }
@@ -607,7 +663,19 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={5} title="Imagem de capa" />
+            <SectionHeading number={5} title="Diferenciais do imóvel" />
+            <p className="text-xs text-muted-foreground">
+              Selecione um ou mais diferenciais para exibir na página do imóvel.
+            </p>
+            <PropertyAmenitiesField
+              selected={selectedAmenities}
+              onChange={setSelectedAmenities}
+              submitting={submitting}
+            />
+          </section>
+
+          <section className="space-y-4">
+            <SectionHeading number={6} title="Imagem de capa" />
             <ImageUploadZone
               id="property-cover"
               label="Imagem de capa"
@@ -623,7 +691,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={6} title="Galeria de imagens" />
+            <SectionHeading number={7} title="Galeria de imagens" />
             <GalleryUploadZone
               id="property-gallery"
               label="Imagens do imóvel"
@@ -634,12 +702,12 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={7} title="Finalidade e localização" />
+            <SectionHeading number={8} title="Finalidade e localização" />
             <PropertyListingFields property={property} submitting={submitting} />
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={8} title="Preço" />
+            <SectionHeading number={9} title="Preço" />
             <div className="space-y-2">
               <RequiredLabel htmlFor="property-price">Preço do imóvel</RequiredLabel>
               <div className="flex">

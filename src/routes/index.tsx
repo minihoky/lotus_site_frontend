@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { createFileRoute, useRouterState } from "@tanstack/react-router";
 import { Header } from "@/components/sections/Header";
 import { Hero } from "@/components/sections/Hero";
 import { FeaturedProperties } from "@/components/sections/FeaturedProperties";
@@ -51,11 +51,20 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { properties: initialProperties, condominiums: initialCondominiums } = Route.useLoaderData();
+  const hash = useRouterState({ select: (state) => state.location.hash });
   const [allProperties, setAllProperties] = useState<Property[]>(initialProperties);
   const [condominiums, setCondominiums] = useState<string[]>(initialCondominiums);
   const [filteredProperties, setFilteredProperties] = useState<Property[]>(initialProperties);
   const [hasSearched, setHasSearched] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+
+  useEffect(() => {
+    if (!hash) return;
+    const id = hash.startsWith("#") ? hash.slice(1) : hash;
+    requestAnimationFrame(() => {
+      document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, [hash]);
 
   async function handleSearch(filters: HeroSearchFilters) {
     setHasSearched(true);
