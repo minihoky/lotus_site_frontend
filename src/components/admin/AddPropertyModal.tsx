@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { ImagePlus, Loader2, MapPin, Upload, X } from "lucide-react";
+import { ImagePlus, Loader2, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -60,6 +60,70 @@ function SectionHeading({ number, title }: { number: number; title: string }) {
     <h3 className="text-base font-semibold text-foreground">
       {number}. {title}
     </h3>
+  );
+}
+
+const selectClassName =
+  "flex h-10 w-full rounded-lg border border-border/70 bg-background px-3 text-sm";
+
+function PropertyListingFields({
+  property,
+  submitting,
+}: {
+  property?: Property;
+  submitting: boolean;
+}) {
+  const locationOrCodeDefault = property?.code || property?.location || "";
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <RequiredLabel htmlFor="property-purpose">Finalidade</RequiredLabel>
+        <select
+          id="property-purpose"
+          name="purpose"
+          defaultValue={property?.purpose ?? "comprar"}
+          className={selectClassName}
+          required
+          disabled={submitting}
+        >
+          {PROPERTY_PURPOSES.map(({ value, label }) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-2">
+        <RequiredLabel htmlFor="property-type">Tipo de imóvel</RequiredLabel>
+        <select
+          id="property-type"
+          name="propertyType"
+          defaultValue={property?.propertyType ?? "Apartamento"}
+          className={selectClassName}
+          required
+          disabled={submitting}
+        >
+          {PROPERTY_TYPES.map((type) => (
+            <option key={type} value={type}>
+              {type}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-2">
+        <RequiredLabel htmlFor="property-location-or-code">Localização ou código</RequiredLabel>
+        <Input
+          id="property-location-or-code"
+          name="locationOrCode"
+          defaultValue={locationOrCodeDefault}
+          placeholder="Bairro, cidade ou código do imóvel"
+          className="h-10 rounded-lg border-border/70"
+          required
+          disabled={submitting}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -288,14 +352,19 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
 
     const formData = new FormData(event.currentTarget);
     const title = String(formData.get("title") ?? "").trim();
-    const location = String(formData.get("location") ?? "").trim();
+    const locationOrCode = String(formData.get("locationOrCode") ?? "").trim();
     const description = String(formData.get("description") ?? "").trim();
     const price = String(formData.get("price") ?? "").trim();
-    const address = String(formData.get("address") ?? "").trim();
     const purpose = String(formData.get("purpose") ?? "comprar").trim() as "comprar" | "alugar";
     const propertyType = String(formData.get("propertyType") ?? "Apartamento").trim();
     const condominium = String(formData.get("condominium") ?? "").trim();
-    const code = String(formData.get("code") ?? "").trim();
+    const looksLikeCode = /^[A-Z]{2,}[-\s]?\d+/i.test(locationOrCode);
+    const location = locationOrCode;
+    const code = looksLikeCode
+      ? locationOrCode
+      : isEdit && property?.code
+        ? property.code
+        : undefined;
     const beds = Number(formData.get("beds"));
     const baths = Number(formData.get("baths"));
     const parking = Number(formData.get("parking"));
@@ -318,12 +387,11 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           area,
           description,
           location,
-          address: address || undefined,
           price,
           purpose,
           propertyType,
           condominium: condominium || undefined,
-          code: code || undefined,
+          code,
           badge: property.badge,
           coverImage: coverFile ?? undefined,
           existingCoverUrl,
@@ -340,12 +408,11 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           area,
           description,
           location,
-          address: address || undefined,
           price,
           purpose,
           propertyType,
           condominium: condominium || undefined,
-          code: code || undefined,
+          code,
           coverImage: coverFile!,
           gallery: newGalleryFiles,
         });
@@ -401,67 +468,18 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
 
           <section className="space-y-4">
             <SectionHeading number={2} title="Classificação" />
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <RequiredLabel htmlFor="property-purpose">Finalidade</RequiredLabel>
-                <select
-                  id="property-purpose"
-                  name="purpose"
-                  defaultValue={property?.purpose ?? "comprar"}
-                  className="flex h-10 w-full rounded-lg border border-border/70 bg-background px-3 text-sm"
-                  required
-                  disabled={submitting}
-                >
-                  {PROPERTY_PURPOSES.map(({ value, label }) => (
-                    <option key={value} value={value}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <RequiredLabel htmlFor="property-type">Tipo de imóvel</RequiredLabel>
-                <select
-                  id="property-type"
-                  name="propertyType"
-                  defaultValue={property?.propertyType ?? "Apartamento"}
-                  className="flex h-10 w-full rounded-lg border border-border/70 bg-background px-3 text-sm"
-                  required
-                  disabled={submitting}
-                >
-                  {PROPERTY_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="property-condominium" className="text-sm font-medium text-foreground">
-                  Condomínio
-                </Label>
-                <Input
-                  id="property-condominium"
-                  name="condominium"
-                  defaultValue={property?.condominium ?? ""}
-                  placeholder="Ex: Alphaville Residencial One"
-                  className="h-10 rounded-lg border-border/70"
-                  disabled={submitting}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="property-code" className="text-sm font-medium text-foreground">
-                  Código do imóvel
-                </Label>
-                <Input
-                  id="property-code"
-                  name="code"
-                  defaultValue={property?.code ?? ""}
-                  placeholder="Ex: LOT-021"
-                  className="h-10 rounded-lg border-border/70"
-                  disabled={submitting}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="property-condominium" className="text-sm font-medium text-foreground">
+                Condomínio
+              </Label>
+              <Input
+                id="property-condominium"
+                name="condominium"
+                defaultValue={property?.condominium ?? ""}
+                placeholder="Ex: Alphaville Residencial One"
+                className="h-10 rounded-lg border-border/70"
+                disabled={submitting}
+              />
             </div>
           </section>
 
@@ -576,40 +594,8 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={7} title="Localização" />
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <RequiredLabel htmlFor="property-location">Localização</RequiredLabel>
-                <div className="relative">
-                  <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="property-location"
-                    name="location"
-                    defaultValue={property?.location ?? ""}
-                    placeholder="Ex: Vila Mariana, São Paulo - SP"
-                    className="h-10 rounded-lg border-border/70 pl-9"
-                    required
-                    disabled={submitting}
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="property-address" className="text-sm font-medium text-foreground">
-                  Endereço completo
-                </Label>
-                <Input
-                  id="property-address"
-                  name="address"
-                  defaultValue={property?.address ?? ""}
-                  placeholder="Ex: Rua Domingos de Morais, 2564 — Vila Mariana, São Paulo - SP"
-                  className="h-10 rounded-lg border-border/70"
-                  disabled={submitting}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Se não informado, a localização será usada como endereço.
-                </p>
-              </div>
-            </div>
+            <SectionHeading number={7} title="Finalidade e localização" />
+            <PropertyListingFields property={property} submitting={submitting} />
           </section>
 
           <section className="space-y-4">
