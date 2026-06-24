@@ -16,8 +16,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createProperty, updateProperty, type Property } from "@/lib/api";
-import { PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
+import { createProperty, fetchCondominiums, updateProperty, type Property } from "@/lib/api";
+import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
 import { cn } from "@/lib/utils";
 
 interface AddPropertyModalProps {
@@ -65,6 +65,50 @@ function SectionHeading({ number, title }: { number: number; title: string }) {
 
 const selectClassName =
   "flex h-10 w-full rounded-lg border border-border/70 bg-background px-3 text-sm";
+
+function CondominiumLabel({ htmlFor }: { htmlFor: string }) {
+  return (
+    <Label
+      htmlFor={htmlFor}
+      className="text-[10px] font-semibold tracking-[0.18em] text-gold uppercase"
+    >
+      CONDOMÍNIO
+    </Label>
+  );
+}
+
+function CondominiumField({
+  property,
+  submitting,
+  condominiumSuggestions,
+}: {
+  property?: Property;
+  submitting: boolean;
+  condominiumSuggestions: string[];
+}) {
+  return (
+    <div className="space-y-2">
+      <CondominiumLabel htmlFor="property-condominium" />
+      <Input
+        id="property-condominium"
+        name="condominium"
+        list="property-condominium-suggestions"
+        defaultValue={property?.condominium ?? ""}
+        placeholder="Ex: Alphaville Residencial One"
+        className="h-10 rounded-lg border-border/70"
+        disabled={submitting}
+      />
+      <datalist id="property-condominium-suggestions">
+        {condominiumSuggestions.map((name) => (
+          <option key={name} value={name} />
+        ))}
+      </datalist>
+      <p className="text-xs text-muted-foreground">
+        Informe o condomínio do imóvel para que ele apareça no filtro de busca.
+      </p>
+    </div>
+  );
+}
 
 function PropertyListingFields({
   property,
@@ -271,6 +315,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [condominiumSuggestions, setCondominiumSuggestions] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
@@ -297,6 +342,9 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     } else {
       resetForm();
     }
+    void fetchCondominiums()
+      .then(setCondominiumSuggestions)
+      .catch(() => setCondominiumSuggestions([]));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, property?.slug]);
 
@@ -357,7 +405,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const price = String(formData.get("price") ?? "").trim();
     const purpose = String(formData.get("purpose") ?? "comprar").trim() as "comprar" | "alugar";
     const propertyType = String(formData.get("propertyType") ?? "Apartamento").trim();
-    const condominium = String(formData.get("condominium") ?? "").trim();
+    const condominium = prepareCondominiumForListing(String(formData.get("condominium") ?? ""));
     const looksLikeCode = /^[A-Z]{2,}[-\s]?\d+/i.test(locationOrCode);
     const location = locationOrCode;
     const code = looksLikeCode
@@ -390,7 +438,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           price,
           purpose,
           propertyType,
-          condominium: condominium || undefined,
+          condominium,
           code,
           badge: property.badge,
           coverImage: coverFile ?? undefined,
@@ -411,7 +459,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           price,
           purpose,
           propertyType,
-          condominium: condominium || undefined,
+          condominium,
           code,
           coverImage: coverFile!,
           gallery: newGalleryFiles,
@@ -467,20 +515,12 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </section>
 
           <section className="space-y-4">
-            <SectionHeading number={2} title="Classificação" />
-            <div className="space-y-2">
-              <Label htmlFor="property-condominium" className="text-sm font-medium text-foreground">
-                Condomínio
-              </Label>
-              <Input
-                id="property-condominium"
-                name="condominium"
-                defaultValue={property?.condominium ?? ""}
-                placeholder="Ex: Alphaville Residencial One"
-                className="h-10 rounded-lg border-border/70"
-                disabled={submitting}
-              />
-            </div>
+            <SectionHeading number={2} title="CONDOMÍNIO" />
+            <CondominiumField
+              property={property}
+              submitting={submitting}
+              condominiumSuggestions={condominiumSuggestions}
+            />
           </section>
 
           <section className="space-y-4">

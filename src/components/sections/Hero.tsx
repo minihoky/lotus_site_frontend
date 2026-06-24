@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import imageHero from "@/assets/hero-living.png";
 import { ArrowRight, Search } from "lucide-react";
+import { fetchCondominiums } from "@/lib/properties";
 import {
   PROPERTY_PURPOSES,
   PROPERTY_TYPES,
   handlePriceInputChange,
+  mergeCondominiumLists,
   parseBrazilianPrice,
   type HeroSearchFilters,
   type PropertyPurpose,
@@ -33,10 +35,28 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
   const [purpose, setPurpose] = useState<PropertyPurpose | "">("comprar");
   const [propertyType, setPropertyType] = useState("");
   const [condominium, setCondominium] = useState("");
+  const [condominiumOptions, setCondominiumOptions] = useState<string[]>(condominiums);
   const [locationOrCode, setLocationOrCode] = useState("");
   const [minPriceInput, setMinPriceInput] = useState("");
   const [maxPriceInput, setMaxPriceInput] = useState("");
   const [priceError, setPriceError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setCondominiumOptions(mergeCondominiumLists(condominiums));
+  }, [condominiums]);
+
+  async function loadCondominiumOptions() {
+    try {
+      const names = await fetchCondominiums();
+      setCondominiumOptions((current) => mergeCondominiumLists(current, names));
+    } catch {
+      // Keep options already loaded from the page.
+    }
+  }
+
+  useEffect(() => {
+    void loadCondominiumOptions();
+  }, []);
 
   function handleSearchSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -151,22 +171,17 @@ export function Hero({ condominiums, onSearch }: HeroProps) {
               <select
                 value={condominium}
                 onChange={(e) => setCondominium(e.target.value)}
+                onFocus={() => void loadCondominiumOptions()}
                 className={selectClassName}
                 aria-label="Condomínio"
-                disabled={condominiums.length === 0}
               >
                 <option value="">Todos</option>
-                {condominiums.map((name) => (
+                {condominiumOptions.map((name) => (
                   <option key={name} value={name}>
                     {name}
                   </option>
                 ))}
               </select>
-              {condominiums.length === 0 ? (
-                <p className="mt-1 text-[10px] text-muted-foreground">
-                  Nenhum condomínio cadastrado nos imóveis.
-                </p>
-              ) : null}
             </div>
 
             <div>

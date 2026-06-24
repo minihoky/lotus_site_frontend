@@ -10,6 +10,7 @@ import { fetchCondominiums, fetchProperties, type Property } from "@/lib/propert
 import {
   applyPropertyFilters,
   condominiumsFromProperties,
+  heroSearchToPropertyFilters,
   mergeCondominiumLists,
   type HeroSearchFilters,
 } from "@/lib/property-search";
@@ -49,13 +50,36 @@ export const Route = createFileRoute("/")({
 });
 
 function Index() {
-  const { properties, condominiums } = Route.useLoaderData();
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>(properties);
+  const { properties: initialProperties, condominiums: initialCondominiums } = Route.useLoaderData();
+  const [allProperties, setAllProperties] = useState<Property[]>(initialProperties);
+  const [condominiums, setCondominiums] = useState<string[]>(initialCondominiums);
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>(initialProperties);
   const [hasSearched, setHasSearched] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  function handleSearch(filters: HeroSearchFilters) {
+  async function handleSearch(filters: HeroSearchFilters) {
     setHasSearched(true);
-    setFilteredProperties(applyPropertyFilters(properties, filters));
+    setIsSearching(true);
+
+    try {
+      const [latestProperties, apiCondominiums] = await Promise.all([
+        fetchProperties({ sort: "recent", ...heroSearchToPropertyFilters(filters) }),
+        fetchCondominiums().catch(() => [] as string[]),
+      ]);
+
+      const mergedCondominiums = mergeCondominiumLists(
+        apiCondominiums,
+        condominiumsFromProperties(latestProperties),
+      );
+
+      setAllProperties(latestProperties);
+      setCondominiums(mergedCondominiums);
+      setFilteredProperties(applyPropertyFilters(latestProperties, filters));
+    } catch {
+      setFilteredProperties(applyPropertyFilters(allProperties, filters));
+    } finally {
+      setIsSearching(false);
+    }
 
     if (typeof window !== "undefined") {
       const section = document.getElementById("imoveis");
@@ -72,7 +96,8 @@ function Index() {
         <Hero condominiums={condominiums} onSearch={handleSearch} />
         <FeaturedProperties
           properties={filteredProperties}
-          emptySearch={hasSearched && filteredProperties.length === 0}
+          emptySearch={hasSearched && !isSearching && filteredProperties.length === 0}
+          isLoading={isSearching}
         />
         <Differentials />
         <CTABanner />

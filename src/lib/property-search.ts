@@ -20,11 +20,35 @@ export function mergeCondominiumLists(...sources: Iterable<string>[]): string[] 
   const names = new Set<string>();
   for (const source of sources) {
     for (const name of source) {
-      const trimmed = name.trim();
-      if (trimmed) names.add(trimmed);
+      const normalized = normalizeCondominiumName(name);
+      if (normalized) names.add(normalized);
     }
   }
   return Array.from(names).sort((a, b) => a.localeCompare(b, "pt-BR"));
+}
+
+export function normalizeCondominiumName(value: string | undefined | null): string | undefined {
+  if (!value) return undefined;
+  const normalized = value.trim().replace(/\s+/g, " ");
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+/** Prepares CONDOMÍNIO text from admin forms before saving to a listing. */
+export function prepareCondominiumForListing(raw: string): string | undefined {
+  return normalizeCondominiumName(raw);
+}
+
+export function matchesCondominiumFilter(
+  propertyCondominium: string | undefined,
+  filterCondominium: string,
+): boolean {
+  const normalizedFilter = normalizeCondominiumName(filterCondominium);
+  if (!normalizedFilter) return true;
+
+  const normalizedProperty = normalizeCondominiumName(propertyCondominium);
+  if (!normalizedProperty) return false;
+
+  return normalizeSearchText(normalizedProperty) === normalizeSearchText(normalizedFilter);
 }
 
 export function condominiumsFromProperties(properties: Property[]): string[] {
@@ -87,7 +111,10 @@ export function heroSearchToPropertyFilters(filters: HeroSearchFilters): Propert
 
   if (filters.purpose) result.purpose = filters.purpose;
   if (filters.propertyType) result.propertyType = filters.propertyType;
-  if (filters.condominium) result.condominium = filters.condominium;
+  if (filters.condominium) {
+    const normalized = prepareCondominiumForListing(filters.condominium);
+    if (normalized) result.condominium = normalized;
+  }
 
   if (filters.locationOrCode) {
     const term = filters.locationOrCode.trim();
@@ -112,7 +139,7 @@ export function applyPropertyFilters(properties: Property[], filters: HeroSearch
     if (filters.propertyType && property.propertyType !== filters.propertyType) {
       return false;
     }
-    if (filters.condominium && property.condominium !== filters.condominium) {
+    if (filters.condominium && !matchesCondominiumFilter(property.condominium, filters.condominium)) {
       return false;
     }
     if (filters.locationOrCode && !matchesLocationOrCode(property, filters.locationOrCode)) {
