@@ -69,6 +69,22 @@ export function sortAmenityIds(ids: AmenityId[]): AmenityId[] {
   return AMENITY_CATALOG.filter((amenity) => selected.has(amenity.id)).map((amenity) => amenity.id);
 }
 
+export function toggleAmenitySelection(selected: AmenityId[], id: AmenityId): AmenityId[] {
+  const next = selected.includes(id)
+    ? selected.filter((item) => item !== id)
+    : [...selected, id];
+  return sortAmenityIds(next);
+}
+
+export function catalogFeaturesForDisplay(
+  features: PropertyFeature[],
+  parking?: number,
+): PropertyFeature[] {
+  const ids = featuresToAmenityIds(features);
+  if (ids.length === 0) return [];
+  return amenitiesToFeatures(ids, parking);
+}
+
 export function amenitiesToFeatures(
   selectedIds: AmenityId[],
   parking?: number,

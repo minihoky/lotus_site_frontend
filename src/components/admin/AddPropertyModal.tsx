@@ -23,6 +23,7 @@ import {
   FEATURE_ICONS,
   amenitiesToFeatures,
   featuresToAmenityIds,
+  toggleAmenitySelection,
   type AmenityId,
 } from "@/lib/property-features";
 import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
@@ -326,9 +327,7 @@ function PropertyAmenitiesField({
   submitting: boolean;
 }) {
   function toggleAmenity(id: AmenityId) {
-    onChange(
-      selected.includes(id) ? selected.filter((item) => item !== id) : [...selected, id],
-    );
+    onChange(toggleAmenitySelection(selected, id));
   }
 
   return (
