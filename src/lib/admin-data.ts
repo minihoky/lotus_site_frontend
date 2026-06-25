@@ -21,7 +21,7 @@ export type RecentProperty = {
   area: number;
 };
 
-// 
+// todo
 
 export type RecentReservation = {
   id: string;
