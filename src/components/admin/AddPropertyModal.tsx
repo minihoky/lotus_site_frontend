@@ -437,7 +437,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const features = mergeFeaturesForStorage(
       amenitiesToFeatures(selectedAmenities, parking),
       customFeatures,
-      parking,
     );
 
     const existingGalleryUrls = galleryItems.filter((item) => !item.file).map((item) => item.preview);
