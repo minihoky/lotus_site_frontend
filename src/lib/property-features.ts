@@ -192,13 +192,20 @@ export function allFeaturesForDisplay(
   parking?: number,
   options?: { usePageLabels?: boolean },
 ): PropertyFeature[] {
+  const usePageLabels = options?.usePageLabels ?? true;
   const catalog = catalogFeaturesForDisplay(features, parking, options);
   const custom = extractCustomFeatures(features).map((feature) => ({
     label: feature.label.trim(),
     icon: feature.icon,
   }));
 
-  return dedupeFeatures([...catalog, ...custom]);
+  const merged = dedupeFeatures([...catalog, ...custom]);
+
+  if (parking && parking > 0 && !hasParkingFeature(merged)) {
+    return dedupeFeatures([...merged, parkingFeatureForDisplay(parking, usePageLabels)]);
+  }
+
+  return merged;
 }
 
 export function amenitiesToFeatures(
@@ -209,11 +216,7 @@ export function amenitiesToFeatures(
     const amenity = AMENITY_BY_ID.get(id)!;
 
     if (id === "parking_space" && parking && parking > 0) {
-      return {
-        label: parking === 1 ? "1 vaga" : `${parking} vagas`,
-        icon: "parking",
-        amenityId: id,
-      };
+      return parkingFeatureForStorage(parking);
     }
 
     return {
@@ -224,9 +227,38 @@ export function amenitiesToFeatures(
   });
 }
 
+function parkingFeatureForStorage(parking: number): PropertyFeature {
+  return {
+    label: parking === 1 ? "1 vaga" : `${parking} vagas`,
+    icon: "parking",
+    amenityId: "parking_space",
+  };
+}
+
+function parkingFeatureForDisplay(parking: number, usePageLabels = true): PropertyFeature {
+  return {
+    label: usePageLabels
+      ? parking === 1
+        ? "1 parking space"
+        : `${parking} parking spaces`
+      : parking === 1
+        ? "1 vaga"
+        : `${parking} vagas`,
+    icon: "parking",
+    amenityId: "parking_space",
+  };
+}
+
+function hasParkingFeature(features: PropertyFeature[]): boolean {
+  return features.some(
+    (feature) => feature.amenityId === "parking_space" || feature.icon === "parking",
+  );
+}
+
 export function mergeFeaturesForStorage(
   catalogFeatures: PropertyFeature[],
   customFeatures: PropertyFeature[],
+  parking?: number,
 ): PropertyFeature[] {
   const custom = customFeatures
     .map((feature) => ({
@@ -235,7 +267,12 @@ export function mergeFeaturesForStorage(
     }))
     .filter((feature) => feature.label.length > 0 && FEATURE_ICONS[feature.icon]);
 
-  return dedupeFeatures([...catalogFeatures, ...custom]);
+  const catalog = [...catalogFeatures];
+  if (parking && parking > 0 && !hasParkingFeature([...catalog, ...custom])) {
+    catalog.unshift(parkingFeatureForStorage(parking));
+  }
+
+  return dedupeFeatures([...catalog, ...custom]);
 }
 
 export function resolveFeaturesForDisplay(features: PropertyFeature[]): PropertyFeature[] {

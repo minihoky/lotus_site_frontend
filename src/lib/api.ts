@@ -1,5 +1,3 @@
-import { allFeaturesForDisplay } from "./property-features";
-
 export type PropertyBadge = "DESTAQUE" | "LANÇAMENTO";
 
 export type PropertyAmenityId =
@@ -179,7 +177,7 @@ function normalizeProperty(property: Property): Property {
     propertyType: property.propertyType ?? "Apartamento",
     image: resolveMediaUrl(property.image),
     gallery: property.gallery.map(resolveMediaUrl),
-    features: allFeaturesForDisplay(property.features ?? [], property.parking),
+    features: property.features ?? [],
   };
 }
 
@@ -333,6 +331,19 @@ export type UpdatePropertyFormInput = {
   features: PropertyFeature[];
 };
 
+function formatApiError(body: unknown, fallback: string): string {
+  if (typeof body !== "object" || body === null) return fallback;
+
+  const details = (body as { details?: { fieldErrors?: Record<string, string[]> } }).details;
+  if (details?.fieldErrors) {
+    const messages = Object.values(details.fieldErrors).flat();
+    if (messages.length > 0) return messages.join(" ");
+  }
+
+  if ("error" in body) return String((body as { error: string }).error);
+  return fallback;
+}
+
 async function submitPropertyForm(
   path: string,
   method: "POST" | "PUT",
@@ -352,13 +363,10 @@ async function submitPropertyForm(
   formData.append("price", input.price);
   if (input.purpose) formData.append("purpose", input.purpose);
   if (input.propertyType) formData.append("propertyType", input.propertyType);
-  if (input.condominium) {
-    const normalized = input.condominium.trim().replace(/\s+/g, " ");
-    if (normalized) formData.append("condominium", normalized);
-  }
+  formData.append("condominium", (input.condominium ?? "").trim().replace(/\s+/g, " "));
   if (input.code) formData.append("code", input.code);
   if (input.badge) formData.append("badge", input.badge);
-  formData.append("features", JSON.stringify(input.features ?? []));
+  formData.append("features", JSON.stringify(input.features ?? []));  
 
   if ("existingCoverUrl" in input && input.existingCoverUrl) {
     formData.append("existingCoverUrl", toRelativeMediaUrl(input.existingCoverUrl));
@@ -375,7 +383,7 @@ async function submitPropertyForm(
   }
   for (const file of input.gallery) {
     formData.append("gallery", file);
-  }
+  }  
 
   const response = await fetch(`${base}${path}`, {
     method,
@@ -384,15 +392,17 @@ async function submitPropertyForm(
 
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
-    const message =
-      typeof body === "object" && body !== null && "error" in body
-        ? String((body as { error: string }).error)
-        : `Request failed (${response.status})`;
-    throw new Error(message);
+    throw new Error(formatApiError(body, `Request failed (${response.status})`));
   }
 
   const res = (await response.json()) as ApiItemResponse<Property>;
+
+  console.log(res, ".////////////////");
+  console.log(input, ".////////////////");
+  
   return normalizeProperty(res.data);
+
+
 }
 
 export async function createProperty(input: CreatePropertyFormInput): Promise<Property> {

@@ -34,7 +34,7 @@ export function PropertyAmenitiesField({
   }
 
   const previewFeatures = allFeaturesForDisplay(
-    mergeFeaturesForStorage(amenitiesToFeatures(selected, parking), customFeatures),
+    mergeFeaturesForStorage(amenitiesToFeatures(selected, parking), customFeatures, parking),
     parking,
     { usePageLabels: false },
   );

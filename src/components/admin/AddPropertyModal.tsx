@@ -22,7 +22,6 @@ import {
   amenitiesToFeatures,
   extractCustomFeatures,
   featuresToAmenityIds,
-  mergeFeaturesForStorage,
   type AmenityId,
 } from "@/lib/property-features";
 import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
@@ -434,10 +433,15 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const baths = Number(formData.get("baths"));
     const parking = Number(formData.get("parking"));
     const area = Number(formData.get("area"));
-    const features = mergeFeaturesForStorage(
-      amenitiesToFeatures(selectedAmenities, parking),
-      customFeatures,
-    );
+    const features = [
+      ...amenitiesToFeatures(selectedAmenities, parking),
+      ...customFeatures
+        .map((feature) => ({
+          label: feature.label.trim(),
+          icon: feature.icon,
+        }))
+        .filter((feature) => feature.label.length > 0),
+    ];
 
     const existingGalleryUrls = galleryItems.filter((item) => !item.file).map((item) => item.preview);
     const newGalleryFiles = galleryItems.filter((item) => item.file).map((item) => item.file!);
@@ -619,13 +623,15 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
             </div>
           </section>
 
+
           <section className="space-y-4">
             <SectionHeading number={4} title="Diferenciais do imóvel" />
             <PropertyAmenitiesField
               selected={selectedAmenities}
-              onChange={setSelectedAmenities}
-              customFeatures={customFeatures}
-              onCustomFeaturesChange={setCustomFeatures}
+              onChange={setSelectedAmenities }
+              customFeatures={customFeatures ?? []}
+              onCustomFeaturesChange={ () => { console.log( "ffjhasjdhf jhsdj hhsh u using anmeps tosei std in t ao nti");
+              }}
               parking={parkingSpots}
               submitting={submitting}
             />
@@ -647,7 +653,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
             </div>
           </section>
 
-          <section className="space-y-4">
+          {/* <section className="space-y-4">
             <SectionHeading number={6} title="Imagem de capa" />
             <ImageUploadZone
               id="property-cover"
@@ -661,7 +667,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                 setCoverPreview(null);
               }}
             />
-          </section>
+          </section> */}
 
           <section className="space-y-4">
             <SectionHeading number={7} title="Galeria de imagens" />
