@@ -111,6 +111,7 @@ export type Inquiry = {
 type ApiListResponse<T> = { data: T; total?: number };
 type ApiItemResponse<T> = { data: T };
 
+// const DEFAULT_API_ORIGIN = "http://127.0.0.1:3001";
 const DEFAULT_API_ORIGIN = "http://127.0.0.1:3001";
 
 function normalizeApiOrigin(url: string): string {
