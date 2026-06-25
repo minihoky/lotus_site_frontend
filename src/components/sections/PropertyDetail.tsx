@@ -234,7 +234,7 @@ export function PropertyDetail({ property, similar }: { property: Property; simi
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
-                <Link to="/">Home</Link>
+                <Link to="/">Início</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
@@ -289,8 +289,13 @@ export function PropertyDetail({ property, similar }: { property: Property; simi
             </section>
 
             <section>
-              <h2 className="font-display text-2xl text-foreground">Key Real Estate Features</h2>
-              <PropertyFeaturesGrid features={property.features} parking={property.parking} />
+              <h2 className="font-display text-2xl text-foreground">Diferenciais do imóvel</h2>
+              <PropertyFeaturesGrid
+                features={property.features}
+                parking={property.parking}
+                usePageLabels={false}
+                emptyMessage="Nenhum diferencial cadastrado para este imóvel."
+              />
             </section>
           </div>
 
