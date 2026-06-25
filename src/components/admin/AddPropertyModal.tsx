@@ -653,7 +653,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
             </div>
           </section>
 
-          {/* <section className="space-y-4">
+          <section className="space-y-4">
             <SectionHeading number={6} title="Imagem de capa" />
             <ImageUploadZone
               id="property-cover"
@@ -667,7 +667,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                 setCoverPreview(null);
               }}
             />
-          </section> */}
+          </section>
 
           <section className="space-y-4">
             <SectionHeading number={7} title="Galeria de imagens" />
