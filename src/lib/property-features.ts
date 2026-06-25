@@ -309,9 +309,40 @@ export function resolveFeatureFromLabel(label: string): PropertyFeature | null {
   };
 }
 
+function isParkingFeature(feature: PropertyFeature): boolean {
+  return feature.amenityId === "parking_space" || feature.icon === "parking";
+}
+
 export function keyFeaturesFromProperty(features: PropertyFeature[]): PropertyFeature[] {
-  const amenityIds = featuresToAmenityIds(features).filter((id) => id !== "parking_space");
-  return dedupeFeatures([...amenitiesToFeatures(amenityIds), ...extractCustomFeatures(features)]);
+  const result: PropertyFeature[] = [];
+
+  for (const feature of features ?? []) {
+    if (isParkingFeature(feature)) continue;
+
+    if (feature.amenityId && AMENITY_ID_SET.has(feature.amenityId)) {
+      result.push(amenitiesToFeatures([feature.amenityId])[0]!);
+      continue;
+    }
+
+    const exactCatalog = AMENITY_CATALOG.find(
+      (amenity) =>
+        amenity.label.toLowerCase() === feature.label.toLowerCase() ||
+        amenity.pageLabel.toLowerCase() === feature.label.toLowerCase(),
+    );
+    if (exactCatalog) {
+      result.push(amenitiesToFeatures([exactCatalog.id])[0]!);
+      continue;
+    }
+
+    if (FEATURE_ICONS[feature.icon] && feature.label.trim()) {
+      result.push({
+        label: feature.label.trim(),
+        icon: feature.icon,
+      });
+    }
+  }
+
+  return dedupeFeatures(result);
 }
 
 export function keyFeaturesForStorage(
