@@ -98,7 +98,7 @@ export function AdminSidebar() {
   return (
     <Sidebar collapsible="icon" className="border-sidebar-border">
       <SidebarHeader className="border-b border-sidebar-border px-4 py-5">
-        <Link to="/admin" className="flex flex-col items-center gap-2 group-data-[collapsible=icon]:px-0">
+        <Link to="/admin_page" className="flex flex-col items-center gap-2 group-data-[collapsible=icon]:px-0">
           <img
             src={logo}
             alt="Lótus Imóveis"
@@ -120,7 +120,7 @@ export function AdminSidebar() {
                     "data-[active=true]:hover:bg-gold/90 data-[active=true]:hover:text-primary-foreground",
                   )}
                 >
-                  <Link to="/admin">
+                  <Link to="/admin_page">
                     <LayoutDashboard />
                     <span>Dashboard</span>
                   </Link>

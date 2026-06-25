@@ -3,7 +3,7 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { DashboardContent } from "@/components/admin/DashboardContent";
 import { fetchInquiries, fetchProperties } from "@/lib/properties";
 
-export const Route = createFileRoute("/admin/")({
+export const Route = createFileRoute("/admin_page/")({
   loader: async () => {
     const [recentProperties, recentInquiries] = await Promise.all([
       fetchProperties({ sort: "recent" }),

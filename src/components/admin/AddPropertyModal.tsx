@@ -496,7 +496,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
 
       await router.invalidate({
         filter: (match) =>
-          match.routeId === "/admin/" ||
+          match.routeId === "/admin_page/" ||
           match.routeId === "/" ||
           match.routeId === "/imoveis/$slug",
       });

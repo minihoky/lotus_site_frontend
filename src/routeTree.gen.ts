@@ -9,14 +9,14 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AdminRouteRouteImport } from './routes/admin/route'
+import { Route as Admin_pageRouteRouteImport } from './routes/admin_page/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as Admin_pageIndexRouteImport } from './routes/admin_page/index'
 import { Route as ImoveisSlugRouteImport } from './routes/imoveis.$slug'
 
-const AdminRouteRoute = AdminRouteRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const Admin_pageRouteRoute = Admin_pageRouteRouteImport.update({
+  id: '/admin_page',
+  path: '/admin_page',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -24,10 +24,10 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminIndexRoute = AdminIndexRouteImport.update({
+const Admin_pageIndexRoute = Admin_pageIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AdminRouteRoute,
+  getParentRoute: () => Admin_pageRouteRoute,
 } as any)
 const ImoveisSlugRoute = ImoveisSlugRouteImport.update({
   id: '/imoveis/$slug',
@@ -37,43 +37,43 @@ const ImoveisSlugRoute = ImoveisSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteRouteWithChildren
+  '/admin_page': typeof Admin_pageRouteRouteWithChildren
   '/imoveis/$slug': typeof ImoveisSlugRoute
-  '/admin/': typeof AdminIndexRoute
+  '/admin_page/': typeof Admin_pageIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/imoveis/$slug': typeof ImoveisSlugRoute
-  '/admin': typeof AdminIndexRoute
+  '/admin_page': typeof Admin_pageIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRouteRouteWithChildren
+  '/admin_page': typeof Admin_pageRouteRouteWithChildren
   '/imoveis/$slug': typeof ImoveisSlugRoute
-  '/admin/': typeof AdminIndexRoute
+  '/admin_page/': typeof Admin_pageIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/imoveis/$slug' | '/admin/'
+  fullPaths: '/' | '/admin_page' | '/imoveis/$slug' | '/admin_page/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/imoveis/$slug' | '/admin'
-  id: '__root__' | '/' | '/admin' | '/imoveis/$slug' | '/admin/'
+  to: '/' | '/imoveis/$slug' | '/admin_page'
+  id: '__root__' | '/' | '/admin_page' | '/imoveis/$slug' | '/admin_page/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRouteRoute: typeof AdminRouteRouteWithChildren
+  Admin_pageRouteRoute: typeof Admin_pageRouteRouteWithChildren
   ImoveisSlugRoute: typeof ImoveisSlugRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteRouteImport
+    '/admin_page': {
+      id: '/admin_page'
+      path: '/admin_page'
+      fullPath: '/admin_page'
+      preLoaderRoute: typeof Admin_pageRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -83,12 +83,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/': {
-      id: '/admin/'
+    '/admin_page/': {
+      id: '/admin_page/'
       path: '/'
-      fullPath: '/admin/'
-      preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRouteRoute
+      fullPath: '/admin_page/'
+      preLoaderRoute: typeof Admin_pageIndexRouteImport
+      parentRoute: typeof Admin_pageRouteRoute
     }
     '/imoveis/$slug': {
       id: '/imoveis/$slug'
@@ -100,21 +100,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface AdminRouteRouteChildren {
-  AdminIndexRoute: typeof AdminIndexRoute
+interface Admin_pageRouteRouteChildren {
+  Admin_pageIndexRoute: typeof Admin_pageIndexRoute
 }
 
-const AdminRouteRouteChildren: AdminRouteRouteChildren = {
-  AdminIndexRoute: AdminIndexRoute,
+const Admin_pageRouteRouteChildren: Admin_pageRouteRouteChildren = {
+  Admin_pageIndexRoute: Admin_pageIndexRoute,
 }
 
-const AdminRouteRouteWithChildren = AdminRouteRoute._addFileChildren(
-  AdminRouteRouteChildren,
+const Admin_pageRouteRouteWithChildren = Admin_pageRouteRoute._addFileChildren(
+  Admin_pageRouteRouteChildren,
 )
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRouteRoute: AdminRouteRouteWithChildren,
+  Admin_pageRouteRoute: Admin_pageRouteRouteWithChildren,
   ImoveisSlugRoute: ImoveisSlugRoute,
 }
 export const routeTree = rootRouteImport
