@@ -16,16 +16,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { PropertyKeyFeaturesField } from "@/components/PropertyKeyFeaturesField";
+import { createProperty, fetchCondominiums, updateProperty, type Property } from "@/lib/api";
 import {
-  createProperty,
-  fetchCondominiums,
-  fetchPropertyBySlug,
-  updateProperty,
-  type Property,
-  type PropertyFeature,
-} from "@/lib/api";
-import { keyFeaturesForStorage, keyFeaturesFromProperty } from "@/lib/property-features";
+  amenitiesToFeatures,
+  extractCustomFeatures,
+  featuresToAmenityIds,
+  mergeFeaturesForStorage,
+} from "@/lib/property-features";
 import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
 import { cn } from "@/lib/utils";
 
@@ -122,13 +119,9 @@ function CondominiumField({
 function PropertyListingFields({
   property,
   submitting,
-  keyFeatures,
-  onKeyFeaturesChange,
 }: {
   property?: Property;
   submitting: boolean;
-  keyFeatures: PropertyFeature[];
-  onKeyFeaturesChange: (next: PropertyFeature[]) => void;
 }) {
   const locationOrCodeDefault = property?.code || property?.location || "";
 
@@ -180,12 +173,6 @@ function PropertyListingFields({
           disabled={submitting}
         />
       </div>
-
-      <PropertyKeyFeaturesField
-        value={keyFeatures}
-        onChange={onKeyFeaturesChange}
-        submitting={submitting}
-      />
     </div>
   );
 }
@@ -331,17 +318,11 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const isEdit = Boolean(property);
-  const [formProperty, setFormProperty] = useState<Property | undefined>();
-  const [formSession, setFormSession] = useState(0);
-  const [loadingProperty, setLoadingProperty] = useState(false);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [condominiumSuggestions, setCondominiumSuggestions] = useState<string[]>([]);
-  const [keyFeatures, setKeyFeatures] = useState<PropertyFeature[]>([]);
   const [submitting, setSubmitting] = useState(false);
-
-  const editingProperty = formProperty ?? property;
 
   function resetForm() {
     if (coverPreview && isBlobUrl(coverPreview)) URL.revokeObjectURL(coverPreview);
@@ -351,7 +332,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(null);
     setGalleryItems([]);
-    setKeyFeatures([]);
     formRef.current?.reset();
   }
 
@@ -359,38 +339,18 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(nextProperty.image);
     setGalleryItems(nextProperty.gallery.map((url) => ({ key: url, preview: url })));
-    setKeyFeatures(keyFeaturesFromProperty(nextProperty.features));
   }
 
   useEffect(() => {
-    if (!open) {
-      setFormProperty(undefined);
-      return;
+    if (!open) return;
+    if (property) {
+      loadPropertyData(property);
+    } else {
+      resetForm();
     }
-
-    setFormSession((current) => current + 1);
-
     void fetchCondominiums()
       .then(setCondominiumSuggestions)
       .catch(() => setCondominiumSuggestions([]));
-
-    if (!property) {
-      resetForm();
-      return;
-    }
-
-    setLoadingProperty(true);
-    void fetchPropertyBySlug(property.slug)
-      .then((fresh) => {
-        const next = fresh ?? property;
-        setFormProperty(next);
-        loadPropertyData(next);
-      })
-      .catch(() => {
-        setFormProperty(property);
-        loadPropertyData(property);
-      })
-      .finally(() => setLoadingProperty(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, property?.slug]);
 
@@ -456,14 +416,21 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const location = locationOrCode;
     const code = looksLikeCode
       ? locationOrCode
-      : isEdit && editingProperty?.code
-        ? editingProperty.code
+      : isEdit && property?.code
+        ? property.code
         : undefined;
     const beds = Number(formData.get("beds"));
     const baths = Number(formData.get("baths"));
     const parking = Number(formData.get("parking"));
     const area = Number(formData.get("area"));
-    const features = keyFeaturesForStorage(keyFeatures, parking);
+    const features =
+      isEdit && property
+        ? mergeFeaturesForStorage(
+            amenitiesToFeatures(featuresToAmenityIds(property.features), parking),
+            extractCustomFeatures(property.features),
+            parking,
+          )
+        : mergeFeaturesForStorage([], [], parking);
 
     const existingGalleryUrls = galleryItems.filter((item) => !item.file).map((item) => item.preview);
     const newGalleryFiles = galleryItems.filter((item) => item.file).map((item) => item.file!);
@@ -472,9 +439,9 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
 
     setSubmitting(true);
     try {
-      if (isEdit && editingProperty) {
+      if (isEdit && property) {
         const updated = await updateProperty({
-          slug: editingProperty.slug,
+          slug: property.slug,
           title,
           beds,
           baths,
@@ -482,13 +449,12 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           area,
           description,
           location,
-          address: editingProperty.address,
           price,
           purpose,
           propertyType,
           condominium,
           code,
-          badge: editingProperty.badge,
+          badge: property.badge,
           coverImage: coverFile ?? undefined,
           existingCoverUrl,
           gallery: newGalleryFiles,
@@ -531,8 +497,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     }
   }
 
-  const formKey = `${editingProperty?.slug ?? "new"}-${formSession}`;
-  const formReady = !isEdit || (Boolean(editingProperty) && !loadingProperty);
+  const formKey = property?.slug ?? "new";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -553,20 +518,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          key={formKey}
-          ref={formRef}
-          onSubmit={handleSubmit}
-          className="mt-8 space-y-8"
-          aria-busy={loadingProperty}
-        >
-          {!formReady ? (
-            <div className="flex items-center justify-center py-16 text-sm text-muted-foreground">
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Carregando dados do imóvel...
-            </div>
-          ) : (
-            <>
+        <form key={formKey} ref={formRef} onSubmit={handleSubmit} className="mt-8 space-y-8">
           <section className="space-y-4">
             <SectionHeading number={1} title="Título do imóvel" />
             <div className="space-y-2">
@@ -574,7 +526,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
               <Input
                 id="property-title"
                 name="title"
-                defaultValue={editingProperty?.title ?? ""}
+                defaultValue={property?.title ?? ""}
                 placeholder="Ex: Apartamento Luxo com Vista Mar"
                 className="h-10 rounded-lg border-border/70"
                 required
@@ -586,7 +538,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
           <section className="space-y-4">
             <SectionHeading number={2} title="CONDOMÍNIO" />
             <CondominiumField
-              property={editingProperty}
+              property={property}
               submitting={submitting}
               condominiumSuggestions={condominiumSuggestions}
             />
@@ -602,7 +554,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                   name="beds"
                   type="number"
                   min={0}
-                  defaultValue={editingProperty?.beds ?? ""}
+                  defaultValue={property?.beds ?? ""}
                   placeholder="Ex: 3"
                   className="h-10 rounded-lg border-border/70"
                   required
@@ -616,7 +568,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                   name="baths"
                   type="number"
                   min={0}
-                  defaultValue={editingProperty?.baths ?? ""}
+                  defaultValue={property?.baths ?? ""}
                   placeholder="Ex: 2"
                   className="h-10 rounded-lg border-border/70"
                   required
@@ -630,7 +582,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                   name="parking"
                   type="number"
                   min={0}
-                  defaultValue={editingProperty?.parking ?? ""}
+                  defaultValue={property?.parking ?? ""}
                   placeholder="Ex: 2"
                   className="h-10 rounded-lg border-border/70"
                   required
@@ -645,7 +597,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                     name="area"
                     type="number"
                     min={1}
-                    defaultValue={editingProperty?.area ?? ""}
+                    defaultValue={property?.area ?? ""}
                     placeholder="Ex: 120"
                     className="h-10 rounded-r-none rounded-l-lg border-border/70"
                     required
@@ -666,7 +618,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
               <Textarea
                 id="property-description"
                 name="description"
-                defaultValue={editingProperty ? descriptionToText(editingProperty.description) : ""}
+                defaultValue={property ? descriptionToText(property.description) : ""}
                 placeholder="Ex: Apartamento amplo com vista para o mar, acabamento de alto padrão e área de lazer completa..."
                 className="min-h-[120px] resize-y rounded-lg border-border/70"
                 required
@@ -704,12 +656,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
 
           <section className="space-y-4">
             <SectionHeading number={7} title="Finalidade e localização" />
-            <PropertyListingFields
-              property={editingProperty}
-              submitting={submitting}
-              keyFeatures={keyFeatures}
-              onKeyFeaturesChange={setKeyFeatures}
-            />
+            <PropertyListingFields property={property} submitting={submitting} />
           </section>
 
           <section className="space-y-4">
@@ -723,7 +670,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
                 <Input
                   id="property-price"
                   name="price"
-                  defaultValue={editingProperty ? formatPriceForInput(editingProperty.priceValue) : ""}
+                  defaultValue={property ? formatPriceForInput(property.priceValue) : ""}
                   placeholder="Ex: 1.250.000,00"
                   className="h-10 rounded-l-none rounded-r-lg border-border/70"
                   required
@@ -746,7 +693,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
             <Button
               type="submit"
               className="h-10 rounded-lg bg-gold px-6 text-primary-foreground hover:bg-gold-dark"
-              disabled={submitting || !formReady}
+              disabled={submitting}
             >
               {submitting ? (
                 <>
@@ -760,8 +707,6 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
               )}
             </Button>
           </DialogFooter>
-            </>
-          )}
         </form>
       </DialogContent>
     </Dialog>

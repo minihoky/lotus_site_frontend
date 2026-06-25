@@ -349,9 +349,9 @@ async function submitPropertyForm(
   formData.append("price", input.price);
   if (input.purpose) formData.append("purpose", input.purpose);
   if (input.propertyType) formData.append("propertyType", input.propertyType);
-  if (input.condominium !== undefined) {
+  if (input.condominium) {
     const normalized = input.condominium.trim().replace(/\s+/g, " ");
-    formData.append("condominium", normalized);
+    if (normalized) formData.append("condominium", normalized);
   }
   if (input.code) formData.append("code", input.code);
   if (input.badge) formData.append("badge", input.badge);
