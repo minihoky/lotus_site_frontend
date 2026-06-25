@@ -326,7 +326,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
   const [condominiumSuggestions, setCondominiumSuggestions] = useState<string[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<AmenityId[]>([]);
   const [customFeatures, setCustomFeatures] = useState<PropertyFeature[]>([]);
-  const [parkingSpots, setParkingSpots] = useState(0);
+  const [parkingSpots, setParkingSpots] = useState(property?.parking ?? 0);
   const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {

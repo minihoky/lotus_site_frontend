@@ -1,3 +1,5 @@
+import { allFeaturesForDisplay } from "./property-features";
+
 export type PropertyBadge = "DESTAQUE" | "LANÇAMENTO";
 
 export type PropertyAmenityId =
@@ -177,6 +179,7 @@ function normalizeProperty(property: Property): Property {
     propertyType: property.propertyType ?? "Apartamento",
     image: resolveMediaUrl(property.image),
     gallery: property.gallery.map(resolveMediaUrl),
+    features: allFeaturesForDisplay(property.features ?? [], property.parking),
   };
 }
 
