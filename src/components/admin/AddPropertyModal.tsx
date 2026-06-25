@@ -16,13 +16,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createProperty, fetchCondominiums, updateProperty, type Property } from "@/lib/api";
-import {
-  amenitiesToFeatures,
-  extractCustomFeatures,
-  featuresToAmenityIds,
-  mergeFeaturesForStorage,
-} from "@/lib/property-features";
+import { PropertyKeyFeaturesField } from "@/components/PropertyKeyFeaturesField";
+import { createProperty, fetchCondominiums, updateProperty, type Property, type PropertyFeature } from "@/lib/api";
+import { keyFeaturesForStorage, keyFeaturesFromProperty } from "@/lib/property-features";
 import { prepareCondominiumForListing, PROPERTY_PURPOSES, PROPERTY_TYPES } from "@/lib/property-search";
 import { cn } from "@/lib/utils";
 
@@ -119,9 +115,13 @@ function CondominiumField({
 function PropertyListingFields({
   property,
   submitting,
+  keyFeatures,
+  onKeyFeaturesChange,
 }: {
   property?: Property;
   submitting: boolean;
+  keyFeatures: PropertyFeature[];
+  onKeyFeaturesChange: (next: PropertyFeature[]) => void;
 }) {
   const locationOrCodeDefault = property?.code || property?.location || "";
 
@@ -173,6 +173,12 @@ function PropertyListingFields({
           disabled={submitting}
         />
       </div>
+
+      <PropertyKeyFeaturesField
+        value={keyFeatures}
+        onChange={onKeyFeaturesChange}
+        submitting={submitting}
+      />
     </div>
   );
 }
@@ -322,6 +328,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [condominiumSuggestions, setCondominiumSuggestions] = useState<string[]>([]);
+  const [keyFeatures, setKeyFeatures] = useState<PropertyFeature[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
   function resetForm() {
@@ -332,6 +339,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(null);
     setGalleryItems([]);
+    setKeyFeatures([]);
     formRef.current?.reset();
   }
 
@@ -339,6 +347,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     setCoverFile(null);
     setCoverPreview(nextProperty.image);
     setGalleryItems(nextProperty.gallery.map((url) => ({ key: url, preview: url })));
+    setKeyFeatures(keyFeaturesFromProperty(nextProperty.features));
   }
 
   useEffect(() => {
@@ -423,14 +432,7 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
     const baths = Number(formData.get("baths"));
     const parking = Number(formData.get("parking"));
     const area = Number(formData.get("area"));
-    const features =
-      isEdit && property
-        ? mergeFeaturesForStorage(
-            amenitiesToFeatures(featuresToAmenityIds(property.features), parking),
-            extractCustomFeatures(property.features),
-            parking,
-          )
-        : mergeFeaturesForStorage([], [], parking);
+    const features = keyFeaturesForStorage(keyFeatures, parking);
 
     const existingGalleryUrls = galleryItems.filter((item) => !item.file).map((item) => item.preview);
     const newGalleryFiles = galleryItems.filter((item) => item.file).map((item) => item.file!);
@@ -656,7 +658,12 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
 
           <section className="space-y-4">
             <SectionHeading number={7} title="Finalidade e localização" />
-            <PropertyListingFields property={property} submitting={submitting} />
+            <PropertyListingFields
+              property={property}
+              submitting={submitting}
+              keyFeatures={keyFeatures}
+              onKeyFeaturesChange={setKeyFeatures}
+            />
           </section>
 
           <section className="space-y-4">
