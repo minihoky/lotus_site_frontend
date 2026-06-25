@@ -21,6 +21,8 @@ export type RecentProperty = {
   area: number;
 };
 
+// 
+
 export type RecentReservation = {
   id: string;
   customer: string;
