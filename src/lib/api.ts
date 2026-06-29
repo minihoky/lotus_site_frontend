@@ -398,8 +398,6 @@ async function submitPropertyForm(
 
   const res = (await response.json()) as ApiItemResponse<Property>;
 
-  console.log(res, ".////////////////");
-  console.log(input, ".////////////////");
   
   return normalizeProperty(res.data);
 

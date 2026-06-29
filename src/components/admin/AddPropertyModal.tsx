@@ -628,10 +628,9 @@ export function AddPropertyModal({ open, onOpenChange, property }: AddPropertyMo
             <SectionHeading number={4} title="Diferenciais do imóvel" />
             <PropertyAmenitiesField
               selected={selectedAmenities}
-              onChange={setSelectedAmenities }
-              customFeatures={customFeatures ?? []}
-              onCustomFeaturesChange={ () => { console.log( "ffjhasjdhf jhsdj hhsh u using anmeps tosei std in t ao nti");
-              }}
+              onChange={setSelectedAmenities}
+              customFeatures={customFeatures}
+              onCustomFeaturesChange={setCustomFeatures}
               parking={parkingSpots}
               submitting={submitting}
             />
